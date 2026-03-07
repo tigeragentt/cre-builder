@@ -1,5 +1,5 @@
 import type { Node, Edge } from "reactflow";
-import type { AnyNodeData } from "../types";
+import type { AnyNodeData, TriggerCronData } from "../types";
 import { kindLabel } from "../nodes/AppNode";
 
 export type ModalType =
@@ -8,14 +8,15 @@ export type ModalType =
   | "trigger.http"
   | "cap.http"
   | "cap.evmRead"
-  | "cap.evmWrite";
+  | "cap.evmWrite"
+  | "edit.trigger.cron";
 
 type LeftPanelProps = {
   workflowCreated: boolean;
   canAddCaps: boolean;
   isOpen: boolean;
   setIsOpen: (v: boolean) => void;
-  openModal: (type: ModalType) => void;
+  openModal: (type: ModalType, initialData?: Record<string, any>) => void;
   selectedNode: Node<AnyNodeData> | null;
   patchSelected: (patch: Partial<AnyNodeData>) => void;
   canDelete: boolean;
@@ -173,6 +174,24 @@ export function LeftPanel({
                     onChange={(e) => patchSelected({ description: e.target.value })}
                   />
                 </div>
+
+                {selectedNode.data.kind === "trigger.cron" && (
+                  <div className="inspector__field">
+                    <label className="label">Schedule</label>
+                    <div className="cron-preview cron-preview--sm">
+                      {(selectedNode.data as TriggerCronData).cronExpression || "—"}
+                    </div>
+                    <button
+                      className="btn btn--block"
+                      style={{ marginTop: 6 }}
+                      onClick={() =>
+                        openModal("edit.trigger.cron", selectedNode.data as Record<string, any>)
+                      }
+                    >
+                      ✏️ Edit schedule
+                    </button>
+                  </div>
+                )}
 
                 {linkedItems.length > 0 && (
                   <div className="inspector__field">

@@ -101,10 +101,13 @@ export default function App() {
   }
 
   /* -------------------- modal state -------------------- */
-  const [modal, setModal] = useState<{ type: ModalType } | null>(null);
+  const [modal, setModal] = useState<{ type: ModalType; initialData?: Record<string, any> } | null>(null);
   const [form, setForm] = useState<Record<string, any>>({});
 
-  function openModal(type: ModalType) { setForm({}); setModal({ type }); }
+  function openModal(type: ModalType, initialData?: Record<string, any>) {
+    setForm({});
+    setModal({ type, initialData });
+  }
   function closeModal() { setModal(null); setForm({}); }
   function up(k: string, v: any) { setForm((p) => ({ ...p, [k]: v })); }
 
@@ -141,6 +144,38 @@ export default function App() {
         timezone,
         cronExpression,
       });
+      closeModal();
+      return;
+    }
+
+    if (modal.type === "edit.trigger.cron") {
+      const name = String(form.name ?? "").trim();
+      if (!name) return;
+      const scheduleType = (form.scheduleType as CronScheduleType) || "interval";
+      const intervalUnit = (form.intervalUnit as CronIntervalUnit) || "minutes";
+      const intervalValue = Number.isFinite(Number(form.intervalValue)) && Number(form.intervalValue) > 0
+        ? Number(form.intervalValue) : 5;
+      const atHour = Number(form.atHour ?? 9);
+      const atMinute = Number(form.atMinute ?? 0);
+      const daysOfWeek: number[] = Array.isArray(form.daysOfWeek) ? form.daysOfWeek : [1];
+      const dayOfMonth = Number(form.dayOfMonth ?? 1);
+      const timezone = String(form.timezone ?? "UTC");
+      const cronExpression = String(form.cronExpression ?? buildCronExpression({
+        scheduleType, intervalValue, intervalUnit, atHour, atMinute, daysOfWeek, dayOfMonth, timezone,
+      }));
+      patchSelected({
+        name,
+        description: String(form.description ?? "").trim(),
+        scheduleType,
+        intervalValue,
+        intervalUnit,
+        atHour,
+        atMinute,
+        daysOfWeek,
+        dayOfMonth,
+        timezone,
+        cronExpression,
+      } as any);
       closeModal();
       return;
     }

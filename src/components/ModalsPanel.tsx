@@ -3,7 +3,7 @@ import { CronModal } from "./CronModal";
 import type { ModalType } from "./LeftPanel";
 
 type ModalsPanelProps = {
-  modal: { type: ModalType } | null;
+  modal: { type: ModalType; initialData?: Record<string, any> } | null;
   up: (k: string, v: any) => void;
   submitModal: () => void;
   closeModal: () => void;
@@ -16,6 +16,16 @@ export function ModalsPanel({ modal, up, submitModal, closeModal }: ModalsPanelP
     <>
       {modal.type === "trigger.cron" && (
         <CronModal up={up} onSubmit={submitModal} onClose={closeModal} />
+      )}
+
+      {modal.type === "edit.trigger.cron" && (
+        <CronModal
+          up={up}
+          onSubmit={submitModal}
+          onClose={closeModal}
+          initialData={modal.initialData}
+          mode="edit"
+        />
       )}
 
       {modal.type === "trigger.evmLog" && (

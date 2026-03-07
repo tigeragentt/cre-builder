@@ -775,6 +775,11 @@ select {
   word-break: break-all;
 }
 
+.cron-preview--sm {
+  font-size: 11px;
+  padding: 5px 10px;
+}
+
 /* required field marker */
 .req {
   color: #f56565;
