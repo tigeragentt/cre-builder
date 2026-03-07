@@ -1,4 +1,5 @@
 import { Modal } from "./Modal";
+import { CronModal } from "./CronModal";
 import type { ModalType } from "./LeftPanel";
 
 type ModalsPanelProps = {
@@ -14,50 +15,7 @@ export function ModalsPanel({ modal, up, submitModal, closeModal }: ModalsPanelP
   return (
     <>
       {modal.type === "trigger.cron" && (
-        <Modal title="Create Cron Trigger" onClose={closeModal}>
-          <div className="form">
-            <div className="form__field">
-              <label className="label">Name</label>
-              <input className="input" onChange={(e) => up("name", e.target.value)} />
-            </div>
-
-            <div className="form__field">
-              <label className="label">Description</label>
-              <textarea className="textarea" rows={3} onChange={(e) => up("description", e.target.value)} />
-            </div>
-
-            <div className="form__grid">
-              <div className="form__field">
-                <label className="label">Frequency value</label>
-                <input
-                  className="input"
-                  type="number"
-                  min={1}
-                  defaultValue={1}
-                  onChange={(e) => up("frequencyValue", Number(e.target.value))}
-                />
-              </div>
-
-              <div className="form__field">
-                <label className="label">Unit</label>
-                <select
-                  className="select"
-                  defaultValue="minutes"
-                  onChange={(e) => up("frequencyUnit", e.target.value)}
-                >
-                  <option value="minutes">minutes</option>
-                  <option value="hours">hours</option>
-                  <option value="days">days</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="form__actions">
-              <button className="btn" onClick={submitModal}>Create</button>
-              <button className="btn btn--ghost" onClick={closeModal}>Cancel</button>
-            </div>
-          </div>
-        </Modal>
+        <CronModal up={up} onSubmit={submitModal} onClose={closeModal} />
       )}
 
       {modal.type === "trigger.evmLog" && (

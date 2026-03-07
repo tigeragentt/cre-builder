@@ -4,7 +4,8 @@ import type { Node } from "reactflow";
 import "reactflow/dist/style.css";
 import "./App.css";
 
-import type { AnyNodeData, CronFrequencyUnit, Workflow, WorkflowExportV1 } from "./types";
+import type { AnyNodeData, CronScheduleType, CronIntervalUnit, Workflow, WorkflowExportV1 } from "./types";
+import { buildCronExpression } from "./utils/cronUtils";
 import { AppNode } from "./nodes/AppNode";
 import { useGraph, isTrigger, uid, getIdCounter, resetIdCounter } from "./graph/useGraph";
 import { safeJsonParse, downloadText, validateAndNormalizeImport } from "./io/workflowIO";
@@ -114,13 +115,31 @@ export default function App() {
     if (modal.type === "trigger.cron") {
       const name = String(form.name ?? "").trim();
       if (!name) return;
-      const frequencyValue = Number(form.frequencyValue ?? 1);
+      const scheduleType = (form.scheduleType as CronScheduleType) || "interval";
+      const intervalUnit = (form.intervalUnit as CronIntervalUnit) || "minutes";
+      const intervalValue = Number.isFinite(Number(form.intervalValue)) && Number(form.intervalValue) > 0
+        ? Number(form.intervalValue) : 5;
+      const atHour = Number(form.atHour ?? 9);
+      const atMinute = Number(form.atMinute ?? 0);
+      const daysOfWeek: number[] = Array.isArray(form.daysOfWeek) ? form.daysOfWeek : [1];
+      const dayOfMonth = Number(form.dayOfMonth ?? 1);
+      const timezone = String(form.timezone ?? "UTC");
+      const cronExpression = String(form.cronExpression ?? buildCronExpression({
+        scheduleType, intervalValue, intervalUnit, atHour, atMinute, daysOfWeek, dayOfMonth, timezone,
+      }));
       createTriggerNode("trigger.cron", {
         kind: "trigger.cron",
         name,
         description: String(form.description ?? "").trim(),
-        frequencyValue: Number.isFinite(frequencyValue) && frequencyValue > 0 ? frequencyValue : 1,
-        frequencyUnit: (form.frequencyUnit as CronFrequencyUnit) || "minutes",
+        scheduleType,
+        intervalValue,
+        intervalUnit,
+        atHour,
+        atMinute,
+        daysOfWeek,
+        dayOfMonth,
+        timezone,
+        cronExpression,
       });
       closeModal();
       return;
