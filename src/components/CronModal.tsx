@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Modal } from "./Modal";
 import { buildCronExpression, COMMON_TIMEZONES } from "../utils/cronUtils";
-import type { CronScheduleType, CronIntervalUnit } from "../types";
+import type { CronScheduleType, CronIntervalUnit, TriggerCronData } from "../types";
 
 const DAY_OPTIONS = [
   { label: "Sun", value: 0 },
@@ -17,19 +17,22 @@ type CronModalProps = {
   up: (k: string, v: any) => void;
   onSubmit: () => void;
   onClose: () => void;
+  initialData?: Partial<TriggerCronData>;
+  mode?: "create" | "edit";
 };
 
-export function CronModal({ up, onSubmit, onClose }: CronModalProps) {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [scheduleType, setScheduleType] = useState<CronScheduleType>("interval");
-  const [intervalValue, setIntervalValue] = useState(5);
-  const [intervalUnit, setIntervalUnit] = useState<CronIntervalUnit>("minutes");
-  const [atHour, setAtHour] = useState(9);
-  const [atMinute, setAtMinute] = useState(0);
-  const [daysOfWeek, setDaysOfWeek] = useState<number[]>([1]);
-  const [dayOfMonth, setDayOfMonth] = useState(1);
-  const [timezone, setTimezone] = useState("UTC");
+export function CronModal({ up, onSubmit, onClose, initialData, mode = "create" }: CronModalProps) {
+  const d = initialData ?? {};
+  const [name, setName] = useState(d.name ?? "");
+  const [description, setDescription] = useState(d.description ?? "");
+  const [scheduleType, setScheduleType] = useState<CronScheduleType>(d.scheduleType ?? "interval");
+  const [intervalValue, setIntervalValue] = useState(d.intervalValue ?? 5);
+  const [intervalUnit, setIntervalUnit] = useState<CronIntervalUnit>(d.intervalUnit ?? "minutes");
+  const [atHour, setAtHour] = useState(d.atHour ?? 9);
+  const [atMinute, setAtMinute] = useState(d.atMinute ?? 0);
+  const [daysOfWeek, setDaysOfWeek] = useState<number[]>(d.daysOfWeek ?? [1]);
+  const [dayOfMonth, setDayOfMonth] = useState(d.dayOfMonth ?? 1);
+  const [timezone, setTimezone] = useState(d.timezone ?? "UTC");
 
   // Sync a field change: update local state AND push to parent form
   function syncName(v: string) {
@@ -136,7 +139,7 @@ export function CronModal({ up, onSubmit, onClose }: CronModalProps) {
     intervalUnit === "seconds" ? Math.max(30, intervalValue) : intervalValue;
 
   return (
-    <Modal title="Create Cron Trigger" onClose={onClose}>
+    <Modal title={mode === "edit" ? "Edit Cron Trigger" : "Create Cron Trigger"} onClose={onClose}>
       <div className="form">
 
         {/* Name */}
@@ -347,7 +350,7 @@ export function CronModal({ up, onSubmit, onClose }: CronModalProps) {
 
         <div className="form__actions">
           <button className="btn" onClick={handleSubmit} disabled={!name.trim()}>
-            Create
+            {mode === "edit" ? "Save" : "Create"}
           </button>
           <button className="btn btn--ghost" onClick={onClose}>Cancel</button>
         </div>
