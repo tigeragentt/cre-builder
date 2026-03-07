@@ -723,6 +723,64 @@ select {
   border-radius: 14px;
 }
 
+.form__hint--warn {
+  grid-column: 1 / -1;
+  color: #f5a623;
+  border-color: rgba(245, 166, 35, 0.35);
+  background: rgba(245, 166, 35, 0.08);
+}
+
+/* ---- schedule type toggle ---- */
+.btn-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btn--sm {
+  padding: 5px 12px;
+  font-size: 12px;
+}
+
+.btn--active {
+  background: var(--accent, #375bd2);
+  color: #fff;
+  opacity: 1;
+}
+
+/* ---- day-of-week picker ---- */
+.day-picker {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btn--day {
+  width: 44px;
+  padding: 5px 0;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* ---- cron expression preview ---- */
+.cron-preview {
+  font-family: var(--mono);
+  font-size: 13px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radiusSm);
+  padding: 8px 12px;
+  color: var(--text2);
+  user-select: all;
+  word-break: break-all;
+}
+
+/* required field marker */
+.req {
+  color: #f56565;
+  margin-left: 2px;
+}
+
 /* -------------------- edges -------------------- */
 .react-flow__edge.edge--callback .react-flow__edge-path {
   opacity: 0.9;

@@ -10,6 +10,7 @@ import type {
   SmartContractData,
   WebsiteData,
 } from "../types";
+import { cronSummary } from "../utils/cronUtils";
 
 export function kindLabel(k: NodeKind): string {
   switch (k) {
@@ -103,11 +104,14 @@ export function AppNode({ data }: AppNodeProps) {
 
       <div className="node__body">
         {data.kind === "trigger.cron" && (
-          <div className="node__row">
-            <span className="muted">Every</span>{" "}
-            <b>{(data as TriggerCronData).frequencyValue}</b>{" "}
-            <b>{(data as TriggerCronData).frequencyUnit}</b>
-          </div>
+          <>
+            <div className="node__row">
+              <b>{cronSummary(data as TriggerCronData)}</b>
+            </div>
+            <div className="node__row node__mono muted">
+              {(data as TriggerCronData).cronExpression}
+            </div>
+          </>
         )}
 
         {data.kind === "trigger.evmLog" && (

@@ -10,7 +10,11 @@ export type NodeKind =
   | "smartContract"
   | "website";
 
+/** @deprecated use CronScheduleType + full cron fields */
 export type CronFrequencyUnit = "minutes" | "hours" | "days";
+
+export type CronScheduleType = "interval" | "daily" | "weekly" | "monthly";
+export type CronIntervalUnit = "seconds" | "minutes" | "hours";
 
 export type BaseNodeData = {
   kind: NodeKind;
@@ -36,8 +40,22 @@ export type WebsiteData = BaseNodeData & {
 
 export type TriggerCronData = BaseNodeData & {
   kind: "trigger.cron";
-  frequencyValue: number;
-  frequencyUnit: CronFrequencyUnit;
+  scheduleType: CronScheduleType;
+  /** For "interval" schedule */
+  intervalValue: number;
+  intervalUnit: CronIntervalUnit;
+  /** Hour of day 0-23 (daily / weekly / monthly) */
+  atHour: number;
+  /** Minute of hour 0-59 (daily / weekly / monthly) */
+  atMinute: number;
+  /** Days of week 0=Sun…6=Sat (weekly) */
+  daysOfWeek: number[];
+  /** Day of month 1-31 (monthly) */
+  dayOfMonth: number;
+  /** IANA timezone string, e.g. "America/New_York" */
+  timezone: string;
+  /** Computed CRE-compatible cron expression (read-only, derived from above) */
+  cronExpression: string;
 };
 
 export type TriggerEvmLogData = BaseNodeData & {
