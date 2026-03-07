@@ -4,13 +4,14 @@ import type { EvmConfidenceLevel } from "../types";
 
 // Common CRE-supported networks
 const CHAIN_OPTIONS = [
+  { label: "Select network", value: "" },
   { label: "Ethereum Sepolia (testnet)", value: "ethereum-testnet-sepolia" },
   { label: "Ethereum Mainnet", value: "ethereum-mainnet" },
   { label: "Avalanche Fuji (testnet)", value: "avalanche-testnet-fuji" },
   { label: "Polygon Amoy (testnet)", value: "polygon-testnet-amoy" },
   { label: "Base Sepolia (testnet)", value: "base-testnet-sepolia" },
   { label: "Arbitrum Sepolia (testnet)", value: "arbitrum-testnet-sepolia" },
-  { label: "Other (type below)", value: "" },
+  { label: "Other (type below)", value: "other" },
 ];
 
 type EvmLogModalProps = {
@@ -23,13 +24,13 @@ export function EvmLogModal({ up, onSubmit, onClose }: EvmLogModalProps) {
   const [smartContractName, setSmartContractName] = useState("");
   const [eventName, setEventName] = useState("");
   const [contractAddress, setContractAddress] = useState("");
-  const [chainPreset, setChainPreset] = useState(CHAIN_OPTIONS[0].value);
+  const [chainPreset, setChainPreset] = useState("");
   const [chainCustom, setChainCustom] = useState("");
-  const [confidenceLevel, setConfidenceLevel] = useState<EvmConfidenceLevel>("Finalized");
+  const [confidenceLevel, setConfidenceLevel] = useState<EvmConfidenceLevel | "">("");
   const [confirmationBlocks, setConfirmationBlocks] = useState(1);
   const [description, setDescription] = useState("");
 
-  const chainSelector = chainPreset !== "" ? chainPreset : chainCustom;
+  const chainSelector = chainPreset === "other" ? chainCustom : chainPreset;
 
   function sync() {
     up("smartContractName", smartContractName.trim());
@@ -50,7 +51,8 @@ export function EvmLogModal({ up, onSubmit, onClose }: EvmLogModalProps) {
   const canSubmit =
     smartContractName.trim() !== "" &&
     eventName.trim() !== "" &&
-    chainSelector.trim() !== "";
+    chainSelector.trim() !== "" &&
+    confidenceLevel !== "";
 
   return (
     <Modal title="Create EVM Log Trigger" onClose={onClose}>
@@ -101,13 +103,13 @@ export function EvmLogModal({ up, onSubmit, onClose }: EvmLogModalProps) {
           <select
             className="select"
             value={chainPreset}
-            onChange={(e) => { setChainPreset(e.target.value); up("chainSelector", e.target.value !== "" ? e.target.value : chainCustom); }}
+            onChange={(e) => { setChainPreset(e.target.value); up("chainSelector", e.target.value !== "other" ? e.target.value : chainCustom); }}
           >
             {CHAIN_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
-          {chainPreset === "" && (
+          {chainPreset === "other" && (
             <input
               className="input"
               style={{ marginTop: 6 }}
@@ -120,12 +122,13 @@ export function EvmLogModal({ up, onSubmit, onClose }: EvmLogModalProps) {
 
         {/* Confidence Level */}
         <div className="form__field">
-          <label className="label">Confidence level</label>
+          <label className="label">Confidence level <span className="req">*</span></label>
           <select
             className="select"
             value={confidenceLevel}
             onChange={(e) => { setConfidenceLevel(e.target.value as EvmConfidenceLevel); up("confidenceLevel", e.target.value); }}
           >
+            <option value="" disabled>Select confidence level</option>
             <option value="Finalized">Finalized (safest — waits for block finality)</option>
             <option value="Safe">Safe (fewer confirmations than Finalized)</option>
             <option value="Custom">Custom (specify block count)</option>
