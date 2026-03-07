@@ -184,10 +184,9 @@ export default function App() {
       const smartContractName = String(form.smartContractName ?? "").trim();
       const eventName = String(form.eventName ?? "").trim();
       const chainSelector = String(form.chainSelector ?? "").trim();
+      const contractAddress = form.contractAddress ? String(form.contractAddress).trim() : undefined;
       const confidenceLevel = (form.confidenceLevel as any) || "";
       if (!smartContractName || !eventName || !chainSelector || !confidenceLevel) return;
-      const contractAddress = form.contractAddress ? String(form.contractAddress).trim() : undefined;
-      const confidenceLevel = (form.confidenceLevel as any) || "Finalized";
       const confirmationBlocks = confidenceLevel === "Custom" ? Number(form.confirmationBlocks ?? 1) : undefined;
       const scId = ensureSmartContract(smartContractName, eventName, undefined);
       const trigNode = createTriggerNode("trigger.evmLog", {
