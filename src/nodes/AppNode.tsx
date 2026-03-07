@@ -130,7 +130,7 @@ export function AppNode({ data }: AppNodeProps) {
         {data.kind === "trigger.http" && (
           <>
             <div className="node__row">
-              <span className="muted">Caller:</span>{" "}
+              <span className="muted">Website caller:</span>{" "}
               <b>{(data as TriggerHttpData).websiteName}</b>
             </div>
             <div className="node__row">

@@ -68,7 +68,7 @@ export function ModalsPanel({ modal, up, submitModal, closeModal }: ModalsPanelP
             </div>
 
             <div className="form__field">
-              <label className="label">Caller name</label>
+              <label className="label">Website caller</label>
               <input className="input" placeholder="e.g. Price Feed Service" onChange={(e) => up("websiteName", e.target.value)} />
             </div>
 
