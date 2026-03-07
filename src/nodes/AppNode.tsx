@@ -124,6 +124,23 @@ export function AppNode({ data }: AppNodeProps) {
               <span className="muted">Event:</span>{" "}
               <b>{(data as TriggerEvmLogData).eventName}</b>
             </div>
+            <div className="node__row">
+              <span className="muted">Network:</span>{" "}
+              <b>{(data as TriggerEvmLogData).chainSelector || <span className="muted">—</span>}</b>
+            </div>
+            <div className="node__row">
+              <span className="muted">Confidence:</span>{" "}
+              <b>
+                {(data as TriggerEvmLogData).confidenceLevel === "Custom"
+                  ? `${(data as TriggerEvmLogData).confirmationBlocks} blocks`
+                  : (data as TriggerEvmLogData).confidenceLevel || "Finalized"}
+              </b>
+            </div>
+            {(data as TriggerEvmLogData).contractAddress && (
+              <div className="node__row node__mono muted">
+                {(data as TriggerEvmLogData).contractAddress!.slice(0, 10)}…
+              </div>
+            )}
           </>
         )}
 

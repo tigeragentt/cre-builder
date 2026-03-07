@@ -183,7 +183,11 @@ export default function App() {
     if (modal.type === "trigger.evmLog") {
       const smartContractName = String(form.smartContractName ?? "").trim();
       const eventName = String(form.eventName ?? "").trim();
-      if (!smartContractName || !eventName) return;
+      const chainSelector = String(form.chainSelector ?? "").trim();
+      if (!smartContractName || !eventName || !chainSelector) return;
+      const contractAddress = form.contractAddress ? String(form.contractAddress).trim() : undefined;
+      const confidenceLevel = (form.confidenceLevel as any) || "Finalized";
+      const confirmationBlocks = confidenceLevel === "Custom" ? Number(form.confirmationBlocks ?? 1) : undefined;
       const scId = ensureSmartContract(smartContractName, eventName, undefined);
       const trigNode = createTriggerNode("trigger.evmLog", {
         kind: "trigger.evmLog",
@@ -191,6 +195,10 @@ export default function App() {
         description: String(form.description ?? "").trim(),
         smartContractName,
         eventName,
+        contractAddress,
+        chainSelector,
+        confidenceLevel,
+        confirmationBlocks,
       });
       const scPos = { x: trigNode.position.x, y: trigNode.position.y + 150 };
       setNodes((prev) => prev.map((n) => (n.id === scId ? { ...n, position: scPos } : n)));

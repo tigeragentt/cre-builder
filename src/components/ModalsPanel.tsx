@@ -1,5 +1,6 @@
 import { Modal } from "./Modal";
 import { CronModal } from "./CronModal";
+import { EvmLogModal } from "./EvmLogModal";
 import type { ModalType } from "./LeftPanel";
 
 type ModalsPanelProps = {
@@ -29,34 +30,7 @@ export function ModalsPanel({ modal, up, submitModal, closeModal }: ModalsPanelP
       )}
 
       {modal.type === "trigger.evmLog" && (
-        <Modal title="Create EVM Log Trigger" onClose={closeModal}>
-          <div className="form">
-            <div className="form__field">
-              <label className="label">Smart Contract Name</label>
-              <input className="input" onChange={(e) => up("smartContractName", e.target.value)} />
-            </div>
-
-            <div className="form__field">
-              <label className="label">Event Name</label>
-              <input className="input" onChange={(e) => up("eventName", e.target.value)} />
-            </div>
-
-            <div className="form__field">
-              <label className="label">Description</label>
-              <textarea className="textarea" rows={3} onChange={(e) => up("description", e.target.value)} />
-            </div>
-
-            <div className="form__actions">
-              <button className="btn" onClick={submitModal}>Create</button>
-              <button className="btn btn--ghost" onClick={closeModal}>Cancel</button>
-            </div>
-
-            <div className="form__hint">
-              This will auto-create (or reuse) a <b>Smart Contract</b> block and add the event name
-              inside it. The trigger block name will be the <b>Event Name</b>.
-            </div>
-          </div>
-        </Modal>
+        <EvmLogModal up={up} onSubmit={submitModal} onClose={closeModal} />
       )}
 
       {modal.type === "trigger.http" && (
