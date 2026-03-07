@@ -27,15 +27,89 @@ export function CronModal({ up, onSubmit, onClose }: CronModalProps) {
   const [intervalUnit, setIntervalUnit] = useState<CronIntervalUnit>("minutes");
   const [atHour, setAtHour] = useState(9);
   const [atMinute, setAtMinute] = useState(0);
-  const [daysOfWeek, setDaysOfWeek] = useState<number[]>([1]); // Monday default
+  const [daysOfWeek, setDaysOfWeek] = useState<number[]>([1]);
   const [dayOfMonth, setDayOfMonth] = useState(1);
   const [timezone, setTimezone] = useState("UTC");
 
-  const minSeconds = intervalUnit === "seconds" ? Math.max(30, intervalValue) : intervalValue;
+  // Sync a field change: update local state AND push to parent form
+  function syncName(v: string) {
+    setName(v);
+    up("name", v.trim());
+  }
 
+  function syncDescription(v: string) {
+    setDescription(v);
+    up("description", v.trim());
+  }
+
+  function syncScheduleType(v: CronScheduleType) {
+    setScheduleType(v);
+    up("scheduleType", v);
+    syncCronExpr({ scheduleType: v });
+  }
+
+  function syncIntervalValue(v: number) {
+    setIntervalValue(v);
+    up("intervalValue", v);
+    syncCronExpr({ intervalValue: v });
+  }
+
+  function syncIntervalUnit(v: CronIntervalUnit) {
+    setIntervalUnit(v);
+    up("intervalUnit", v);
+    syncCronExpr({ intervalUnit: v });
+  }
+
+  function syncAtHour(v: number) {
+    setAtHour(v);
+    up("atHour", v);
+    syncCronExpr({ atHour: v });
+  }
+
+  function syncAtMinute(v: number) {
+    setAtMinute(v);
+    up("atMinute", v);
+    syncCronExpr({ atMinute: v });
+  }
+
+  function syncDaysOfWeek(newDays: number[]) {
+    setDaysOfWeek(newDays);
+    up("daysOfWeek", newDays);
+    syncCronExpr({ daysOfWeek: newDays });
+  }
+
+  function syncDayOfMonth(v: number) {
+    setDayOfMonth(v);
+    up("dayOfMonth", v);
+    syncCronExpr({ dayOfMonth: v });
+  }
+
+  function syncTimezone(v: string) {
+    setTimezone(v);
+    up("timezone", v);
+    syncCronExpr({ timezone: v });
+  }
+
+  // Recompute and push cronExpression after any field changes
+  function syncCronExpr(overrides: Record<string, any> = {}) {
+    const expr = buildCronExpression({
+      scheduleType,
+      intervalValue,
+      intervalUnit,
+      atHour,
+      atMinute,
+      daysOfWeek,
+      dayOfMonth,
+      timezone,
+      ...overrides,
+    });
+    up("cronExpression", expr);
+  }
+
+  // Current preview (uses latest local state)
   const preview = buildCronExpression({
     scheduleType,
-    intervalValue: intervalUnit === "seconds" ? minSeconds : intervalValue,
+    intervalValue,
     intervalUnit,
     atHour,
     atMinute,
@@ -44,35 +118,22 @@ export function CronModal({ up, onSubmit, onClose }: CronModalProps) {
     timezone,
   });
 
-  function sync() {
-    up("name", name.trim());
-    up("description", description.trim());
-    up("scheduleType", scheduleType);
-    up("intervalValue", intervalUnit === "seconds" ? minSeconds : intervalValue);
-    up("intervalUnit", intervalUnit);
-    up("atHour", atHour);
-    up("atMinute", atMinute);
-    up("daysOfWeek", daysOfWeek);
-    up("dayOfMonth", dayOfMonth);
-    up("timezone", timezone);
-    up("cronExpression", preview);
+  function toggleDay(day: number) {
+    const newDays = daysOfWeek.includes(day)
+      ? daysOfWeek.filter((d) => d !== day)
+      : [...daysOfWeek, day];
+    syncDaysOfWeek(newDays);
   }
 
   function handleSubmit() {
     if (!name.trim()) return;
-    sync();
+    // Ensure cronExpression is pushed with latest state before submit
+    up("cronExpression", preview);
     onSubmit();
   }
 
-  function toggleDay(day: number) {
-    setDaysOfWeek((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    );
-  }
-
-  function handleScheduleTypeChange(t: CronScheduleType) {
-    setScheduleType(t);
-  }
+  const effectiveIntervalValue =
+    intervalUnit === "seconds" ? Math.max(30, intervalValue) : intervalValue;
 
   return (
     <Modal title="Create Cron Trigger" onClose={onClose}>
@@ -85,7 +146,7 @@ export function CronModal({ up, onSubmit, onClose }: CronModalProps) {
             className="input"
             placeholder="e.g. Daily Price Check"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => syncName(e.target.value)}
           />
         </div>
 
@@ -96,7 +157,7 @@ export function CronModal({ up, onSubmit, onClose }: CronModalProps) {
             className="textarea"
             rows={2}
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) => syncDescription(e.target.value)}
           />
         </div>
 
@@ -108,7 +169,7 @@ export function CronModal({ up, onSubmit, onClose }: CronModalProps) {
               <button
                 key={t}
                 className={`btn btn--sm ${scheduleType === t ? "btn--active" : "btn--ghost"}`}
-                onClick={() => handleScheduleTypeChange(t)}
+                onClick={() => syncScheduleType(t)}
                 type="button"
               >
                 {t.charAt(0).toUpperCase() + t.slice(1)}
@@ -127,7 +188,7 @@ export function CronModal({ up, onSubmit, onClose }: CronModalProps) {
                 type="number"
                 min={intervalUnit === "seconds" ? 30 : 1}
                 value={intervalValue}
-                onChange={(e) => setIntervalValue(Number(e.target.value))}
+                onChange={(e) => syncIntervalValue(Number(e.target.value))}
               />
             </div>
             <div className="form__field">
@@ -135,7 +196,7 @@ export function CronModal({ up, onSubmit, onClose }: CronModalProps) {
               <select
                 className="select"
                 value={intervalUnit}
-                onChange={(e) => setIntervalUnit(e.target.value as CronIntervalUnit)}
+                onChange={(e) => syncIntervalUnit(e.target.value as CronIntervalUnit)}
               >
                 <option value="seconds">seconds</option>
                 <option value="minutes">minutes</option>
@@ -144,7 +205,7 @@ export function CronModal({ up, onSubmit, onClose }: CronModalProps) {
             </div>
             {intervalUnit === "seconds" && intervalValue < 30 && (
               <div className="form__hint form__hint--warn">
-                ⚠️ CRE minimum is 30 seconds — will be adjusted automatically.
+                ⚠️ CRE minimum is 30 seconds — will be adjusted to {effectiveIntervalValue}s.
               </div>
             )}
           </div>
@@ -161,7 +222,7 @@ export function CronModal({ up, onSubmit, onClose }: CronModalProps) {
                 min={0}
                 max={23}
                 value={atHour}
-                onChange={(e) => setAtHour(Number(e.target.value))}
+                onChange={(e) => syncAtHour(Number(e.target.value))}
               />
             </div>
             <div className="form__field">
@@ -172,7 +233,7 @@ export function CronModal({ up, onSubmit, onClose }: CronModalProps) {
                 min={0}
                 max={59}
                 value={atMinute}
-                onChange={(e) => setAtMinute(Number(e.target.value))}
+                onChange={(e) => syncAtMinute(Number(e.target.value))}
               />
             </div>
           </div>
@@ -205,7 +266,7 @@ export function CronModal({ up, onSubmit, onClose }: CronModalProps) {
                   min={0}
                   max={23}
                   value={atHour}
-                  onChange={(e) => setAtHour(Number(e.target.value))}
+                  onChange={(e) => syncAtHour(Number(e.target.value))}
                 />
               </div>
               <div className="form__field">
@@ -216,7 +277,7 @@ export function CronModal({ up, onSubmit, onClose }: CronModalProps) {
                   min={0}
                   max={59}
                   value={atMinute}
-                  onChange={(e) => setAtMinute(Number(e.target.value))}
+                  onChange={(e) => syncAtMinute(Number(e.target.value))}
                 />
               </div>
             </div>
@@ -234,7 +295,7 @@ export function CronModal({ up, onSubmit, onClose }: CronModalProps) {
                 min={1}
                 max={31}
                 value={dayOfMonth}
-                onChange={(e) => setDayOfMonth(Number(e.target.value))}
+                onChange={(e) => syncDayOfMonth(Number(e.target.value))}
               />
             </div>
             <div className="form__field">
@@ -245,7 +306,7 @@ export function CronModal({ up, onSubmit, onClose }: CronModalProps) {
                 min={0}
                 max={23}
                 value={atHour}
-                onChange={(e) => setAtHour(Number(e.target.value))}
+                onChange={(e) => syncAtHour(Number(e.target.value))}
               />
             </div>
             <div className="form__field">
@@ -256,7 +317,7 @@ export function CronModal({ up, onSubmit, onClose }: CronModalProps) {
                 min={0}
                 max={59}
                 value={atMinute}
-                onChange={(e) => setAtMinute(Number(e.target.value))}
+                onChange={(e) => syncAtMinute(Number(e.target.value))}
               />
             </div>
           </div>
@@ -269,7 +330,7 @@ export function CronModal({ up, onSubmit, onClose }: CronModalProps) {
             <select
               className="select"
               value={timezone}
-              onChange={(e) => setTimezone(e.target.value)}
+              onChange={(e) => syncTimezone(e.target.value)}
             >
               {COMMON_TIMEZONES.map((tz) => (
                 <option key={tz} value={tz}>{tz}</option>
