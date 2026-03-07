@@ -62,29 +62,47 @@ export function ModalsPanel({ modal, up, submitModal, closeModal }: ModalsPanelP
       {modal.type === "trigger.http" && (
         <Modal title="Create HTTP Trigger" onClose={closeModal}>
           <div className="form">
-            <div className="form__field">
-              <label className="label">Website name</label>
-              <input className="input" onChange={(e) => up("websiteName", e.target.value)} />
+            <div className="form__hint">
+              This trigger fires when an external system sends a signed HTTP POST to the CRE gateway.
+              A <b>Website</b> block will be auto-created to represent the caller.
             </div>
 
             <div className="form__field">
-              <label className="label">API URL</label>
-              <input className="input" onChange={(e) => up("apiUrl", e.target.value)} />
+              <label className="label">Caller name</label>
+              <input className="input" placeholder="e.g. Price Feed Service" onChange={(e) => up("websiteName", e.target.value)} />
+            </div>
+
+            <div className="form__field">
+              <label className="label">Caller URL <span className="muted">(optional, for reference)</span></label>
+              <input className="input" placeholder="e.g. https://api.example.com" onChange={(e) => up("apiUrl", e.target.value)} />
+            </div>
+
+            <div className="form__field">
+              <label className="label">Authorized public keys <span className="muted">(one per line)</span></label>
+              <textarea
+                className="textarea"
+                rows={4}
+                placeholder={"Leave empty for simulation.\nPaste ECDSA public keys for production deployment."}
+                onChange={(e) =>
+                  up(
+                    "authorizedKeys",
+                    e.target.value
+                      .split("\n")
+                      .map((k) => k.trim())
+                      .filter(Boolean)
+                  )
+                }
+              />
             </div>
 
             <div className="form__field">
               <label className="label">Description</label>
-              <textarea className="textarea" rows={3} onChange={(e) => up("description", e.target.value)} />
+              <textarea className="textarea" rows={2} onChange={(e) => up("description", e.target.value)} />
             </div>
 
             <div className="form__actions">
               <button className="btn" onClick={submitModal}>Create</button>
               <button className="btn btn--ghost" onClick={closeModal}>Cancel</button>
-            </div>
-
-            <div className="form__hint">
-              This trigger fires when the HTTP endpoint is invoked. A <b>Website</b> block
-              will be auto-created or reused.
             </div>
           </div>
         </Modal>

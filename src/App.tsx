@@ -203,14 +203,16 @@ export default function App() {
     if (modal.type === "trigger.http") {
       const websiteName = String(form.websiteName ?? "").trim();
       const apiUrl = String(form.apiUrl ?? "").trim();
-      if (!websiteName || !apiUrl) return;
-      const webId = ensureWebsite(websiteName, apiUrl);
+      if (!websiteName) return;
+      const authorizedKeys: string[] = Array.isArray(form.authorizedKeys) ? form.authorizedKeys : [];
+      const webId = ensureWebsite(websiteName, apiUrl || undefined);
       const trigNode = createTriggerNode("trigger.http", {
         kind: "trigger.http",
         name: websiteName,
         description: String(form.description ?? "").trim(),
         websiteName,
         apiUrl,
+        authorizedKeys,
       });
       const webPos = { x: trigNode.position.x, y: trigNode.position.y + 150 };
       setNodes((prev) => prev.map((n) => (n.id === webId ? { ...n, position: webPos } : n)));

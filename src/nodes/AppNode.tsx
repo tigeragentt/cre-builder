@@ -130,11 +130,16 @@ export function AppNode({ data }: AppNodeProps) {
         {data.kind === "trigger.http" && (
           <>
             <div className="node__row">
-              <span className="muted">Website:</span>{" "}
+              <span className="muted">Caller:</span>{" "}
               <b>{(data as TriggerHttpData).websiteName}</b>
             </div>
-            <div className="node__row node__mono">
-              {(data as TriggerHttpData).apiUrl}
+            <div className="node__row">
+              <span className="muted">Auth keys:</span>{" "}
+              <b>
+                {(data as TriggerHttpData).authorizedKeys?.length
+                  ? `${(data as TriggerHttpData).authorizedKeys.length} key(s)`
+                  : <span className="muted">none (simulation only)</span>}
+              </b>
             </div>
           </>
         )}

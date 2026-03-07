@@ -68,6 +68,11 @@ export type TriggerHttpData = BaseNodeData & {
   kind: "trigger.http";
   websiteName: string;
   apiUrl: string;
+  /**
+   * ECDSA public keys authorized to trigger this workflow.
+   * Leave empty for simulation. Required for production deployment.
+   */
+  authorizedKeys: string[];
 };
 
 export type CapHttpData = BaseNodeData & {
