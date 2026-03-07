@@ -58,10 +58,20 @@ export type TriggerCronData = BaseNodeData & {
   cronExpression: string;
 };
 
+export type EvmConfidenceLevel = "Finalized" | "Safe" | "Custom";
+
 export type TriggerEvmLogData = BaseNodeData & {
   kind: "trigger.evmLog";
   smartContractName: string;
   eventName: string;
+  /** Deployed contract address (0x...). Optional if not deployed yet. */
+  contractAddress?: string;
+  /** Chain/network to monitor, e.g. "ethereum-testnet-sepolia" */
+  chainSelector: string;
+  /** Block confirmation level before the trigger fires */
+  confidenceLevel: EvmConfidenceLevel;
+  /** Number of block confirmations when confidenceLevel is "Custom" */
+  confirmationBlocks?: number;
 };
 
 export type TriggerHttpData = BaseNodeData & {
