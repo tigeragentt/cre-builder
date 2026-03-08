@@ -31,6 +31,7 @@ export function isKnownNodeKind(k: any): k is NodeKind {
     k === "cap.http.post" ||
     k === "cap.evmRead" ||
     k === "cap.evmWrite" ||
+    k === "cap.localExecution" ||
     k === "smartContract" ||
     k === "website"
   );
