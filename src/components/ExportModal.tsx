@@ -20,13 +20,14 @@ export function ExportModal({
   edges,
   onClose,
 }: ExportModalProps) {
-  const wfSlug = "workflow-" + (workflowName.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "my-workflow");
+  const nameSlug = workflowName.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "my-workflow";
+  const wfSlug = "workflow-" + nameSlug;
+  const zipName = "CRE-" + nameSlug;
   const [activeFile, setActiveFile] = useState(`${wfSlug}/workflow.ts`);
   const [downloading, setDownloading] = useState(false);
 
   const files = generateProject(workflowName, workflowDescription, nodes, edges);
   const fileNames = Object.keys(files);
-  const zipName = "CRE-" + wfSlug;
 
   async function handleDownload() {
     setDownloading(true);
