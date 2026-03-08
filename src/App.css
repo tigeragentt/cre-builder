@@ -28,6 +28,9 @@
 
   /* inputs / buttons */
   --input-bg: rgba(255, 255, 255, 0.06);
+  --select-bg: #141c2e;
+  --select-option-bg: #141c2e;
+  --select-option-color: rgba(255, 255, 255, 0.92);
   --btn-bg: rgba(255, 255, 255, 0.10);
   --btn-bg-hover: rgba(255, 255, 255, 0.14);
 
@@ -77,6 +80,9 @@
   --placeholder: rgba(0, 0, 0, 0.32);
 
   --input-bg: rgba(0, 0, 0, 0.04);
+  --select-bg: #ffffff;
+  --select-option-bg: #ffffff;
+  --select-option-color: rgba(0, 0, 0, 0.88);
   --btn-bg: rgba(0, 0, 0, 0.07);
   --btn-bg-hover: rgba(0, 0, 0, 0.11);
 
@@ -147,6 +153,12 @@ textarea::placeholder {
 
 select {
   appearance: none;
+  background-color: var(--select-bg);
+}
+
+select option {
+  background-color: var(--select-option-bg);
+  color: var(--select-option-color);
 }
 
 /* -------------------- app layout -------------------- */
