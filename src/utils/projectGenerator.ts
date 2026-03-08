@@ -436,15 +436,25 @@ function generateWorkflowTs(g: WorkflowGraph): string {
     ["trigger.evmLog", "cap.evmRead", "cap.evmWrite"].includes(n.data.kind)
   )?.data as TriggerEvmLogData | CapEvmReadData | CapEvmWriteData | undefined)?.chainSelector;
 
+  // Module-level declarations (accessible from all handlers)
+  const evmGlobalDeclarations = hasEvm
+    ? `
+// ─── EVM Client (module-level, initialized in initWorkflow) ────────────────
+let network: ReturnType<typeof getNetwork>
+let evmClient: cre.capabilities.EVMClient
+`
+    : "";
+
+  // Initialization inside initWorkflow
   const evmNetworkSetup = hasEvm
     ? `
-  const network = getNetwork({
+  network = getNetwork({
     chainFamily: 'evm',
     chainSelectorName: config.chainSelectorName,
     isTestnet: ${isTestnet(evmChain || "")},
   })
   if (!network) throw new Error(\`Network not found: \${config.chainSelectorName}\`)
-  const evmClient = new cre.capabilities.EVMClient(network.chainSelector.selector)`
+  evmClient = new cre.capabilities.EVMClient(network.chainSelector.selector)`
     : "";
 
   const abiConsts = smartContracts.map(generateAbiConst).join("\n");
@@ -496,7 +506,7 @@ type Config = z.infer<typeof configSchema>
 
 // ─── ABIs ──────────────────────────────────────────────────────────────────
 
-${abiConsts}
+${abiConsts}${evmGlobalDeclarations}
 // ─── Local Execution ───────────────────────────────────────────────────────
 ${localStubs}
 
