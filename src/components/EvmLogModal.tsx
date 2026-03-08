@@ -3,8 +3,6 @@ import { Modal } from "./Modal";
 import { EVM_CHAIN_OPTIONS } from "./evmChainOptions";
 import type { EvmConfidenceLevel } from "../types";
 
-const CHAIN_OPTIONS = EVM_CHAIN_OPTIONS;
-
 type EvmLogModalProps = {
   up: (k: string, v: any) => void;
   onSubmit: () => void;
