@@ -20,17 +20,18 @@ export function ExportModal({
   edges,
   onClose,
 }: ExportModalProps) {
-  const [activeFile, setActiveFile] = useState("src/workflow.ts");
+  const wfSlug = workflowName.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "my-workflow";
+  const [activeFile, setActiveFile] = useState(`${wfSlug}/workflow.ts`);
   const [downloading, setDownloading] = useState(false);
 
   const files = generateProject(workflowName, workflowDescription, nodes, edges);
   const fileNames = Object.keys(files);
-  const slug = "CRE-" + (workflowName.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "my-workflow");
+  const zipName = "CRE-" + wfSlug;
 
   async function handleDownload() {
     setDownloading(true);
     try {
-      await downloadProjectZip(files, slug);
+      await downloadProjectZip(files, zipName);
     } finally {
       setDownloading(false);
     }
@@ -66,7 +67,7 @@ export function ExportModal({
 
         <div className="form__actions" style={{ marginTop: 12 }}>
           <button className="btn" onClick={handleDownload} disabled={downloading}>
-            {downloading ? "Preparing…" : `⬇️ Download ${slug}.zip`}
+            {downloading ? "Preparing…" : `⬇️ Download ${zipName}.zip`}
           </button>
           <button className="btn btn--ghost" onClick={onClose}>Close</button>
         </div>
