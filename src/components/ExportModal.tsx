@@ -20,7 +20,7 @@ export function ExportModal({
   edges,
   onClose,
 }: ExportModalProps) {
-  const wfSlug = workflowName.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "my-workflow";
+  const wfSlug = "workflow-" + (workflowName.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "my-workflow");
   const [activeFile, setActiveFile] = useState(`${wfSlug}/workflow.ts`);
   const [downloading, setDownloading] = useState(false);
 
