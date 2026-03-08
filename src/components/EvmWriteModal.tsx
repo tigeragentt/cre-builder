@@ -1,59 +1,46 @@
 import { useState } from "react";
 import { Modal } from "./Modal";
 import { EVM_CHAIN_OPTIONS } from "./evmChainOptions";
-import type { EvmConfidenceLevel } from "../types";
 
-const CHAIN_OPTIONS = EVM_CHAIN_OPTIONS;
-
-type EvmLogModalProps = {
+type EvmWriteModalProps = {
   up: (k: string, v: any) => void;
   onSubmit: () => void;
   onClose: () => void;
 };
 
-export function EvmLogModal({ up, onSubmit, onClose }: EvmLogModalProps) {
+export function EvmWriteModal({ up, onSubmit, onClose }: EvmWriteModalProps) {
   const [smartContractName, setSmartContractName] = useState("");
-  const [eventName, setEventName] = useState("");
+  const [functionName, setFunctionName] = useState("");
   const [contractAddress, setContractAddress] = useState("");
   const [chainPreset, setChainPreset] = useState("");
   const [chainCustom, setChainCustom] = useState("");
-  const [confidenceLevel, setConfidenceLevel] = useState<EvmConfidenceLevel | "">("");
-  const [confirmationBlocks, setConfirmationBlocks] = useState(1);
   const [description, setDescription] = useState("");
 
   const chainSelector = chainPreset === "other" ? chainCustom : chainPreset;
 
-  function sync() {
-    up("smartContractName", smartContractName.trim());
-    up("eventName", eventName.trim());
-    up("contractAddress", contractAddress.trim() || undefined);
-    up("chainSelector", chainSelector.trim());
-    up("confidenceLevel", confidenceLevel);
-    up("confirmationBlocks", confirmationBlocks);
-    up("description", description.trim());
-  }
+  const canSubmit =
+    smartContractName.trim() !== "" &&
+    functionName.trim() !== "" &&
+    chainSelector.trim() !== "";
 
   function handleSubmit() {
-    if (!smartContractName.trim() || !eventName.trim() || !chainSelector.trim()) return;
-    sync();
+    if (!canSubmit) return;
+    up("smartContractName", smartContractName.trim());
+    up("functionName", functionName.trim());
+    up("contractAddress", contractAddress.trim() || undefined);
+    up("chainSelector", chainSelector.trim());
+    up("description", description.trim());
     onSubmit();
   }
 
-  const canSubmit =
-    smartContractName.trim() !== "" &&
-    eventName.trim() !== "" &&
-    chainSelector.trim() !== "" &&
-    confidenceLevel !== "";
-
   return (
-    <Modal title="Create EVM Log Trigger" onClose={onClose}>
+    <Modal title="Add EVM Write Capability" onClose={onClose}>
       <div className="form">
         <div className="form__hint">
-          Fires when the specified event is emitted by the contract.
+          Writes data to a smart contract state-changing function.
           A <b>Smart Contract</b> block will be auto-created or reused.
         </div>
 
-        {/* Smart Contract Name */}
         <div className="form__field">
           <label className="label">Smart contract name <span className="req">*</span></label>
           <input
@@ -64,22 +51,18 @@ export function EvmLogModal({ up, onSubmit, onClose }: EvmLogModalProps) {
           />
         </div>
 
-        {/* Event Name */}
         <div className="form__field">
-          <label className="label">Event name <span className="req">*</span></label>
+          <label className="label">Function name <span className="req">*</span></label>
           <input
             className="input"
-            placeholder="e.g. PriceUpdated"
-            value={eventName}
-            onChange={(e) => { setEventName(e.target.value); up("eventName", e.target.value.trim()); }}
+            placeholder="e.g. updatePrice"
+            value={functionName}
+            onChange={(e) => { setFunctionName(e.target.value); up("functionName", e.target.value.trim()); }}
           />
         </div>
 
-        {/* Contract Address (optional) */}
         <div className="form__field">
-          <label className="label">
-            Contract address <span className="muted">(optional — leave empty if not deployed yet)</span>
-          </label>
+          <label className="label">Contract address <span className="muted">(optional — leave empty if not deployed yet)</span></label>
           <input
             className="input"
             placeholder="0x..."
@@ -88,7 +71,6 @@ export function EvmLogModal({ up, onSubmit, onClose }: EvmLogModalProps) {
           />
         </div>
 
-        {/* Chain / Network */}
         <div className="form__field">
           <label className="label">Network <span className="req">*</span></label>
           <select
@@ -111,35 +93,6 @@ export function EvmLogModal({ up, onSubmit, onClose }: EvmLogModalProps) {
           )}
         </div>
 
-        {/* Confidence Level */}
-        <div className="form__field">
-          <label className="label">Confidence level <span className="req">*</span></label>
-          <select
-            className="select"
-            value={confidenceLevel}
-            onChange={(e) => { setConfidenceLevel(e.target.value as EvmConfidenceLevel); up("confidenceLevel", e.target.value); }}
-          >
-            <option value="" disabled>Select confidence level</option>
-            <option value="Finalized">Finalized (safest — waits for block finality)</option>
-            <option value="Safe">Safe (fewer confirmations than Finalized)</option>
-            <option value="Custom">Custom (specify block count)</option>
-          </select>
-          {confidenceLevel === "Custom" && (
-            <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 8 }}>
-              <input
-                className="input"
-                type="number"
-                min={1}
-                style={{ width: 100 }}
-                value={confirmationBlocks}
-                onChange={(e) => { setConfirmationBlocks(Number(e.target.value)); up("confirmationBlocks", Number(e.target.value)); }}
-              />
-              <span className="muted" style={{ fontSize: 12 }}>block confirmations</span>
-            </div>
-          )}
-        </div>
-
-        {/* Description */}
         <div className="form__field">
           <label className="label">Description</label>
           <textarea
@@ -151,9 +104,7 @@ export function EvmLogModal({ up, onSubmit, onClose }: EvmLogModalProps) {
         </div>
 
         <div className="form__actions">
-          <button className="btn" onClick={handleSubmit} disabled={!canSubmit}>
-            Create
-          </button>
+          <button className="btn" onClick={handleSubmit} disabled={!canSubmit}>Add</button>
           <button className="btn btn--ghost" onClick={onClose}>Cancel</button>
         </div>
       </div>

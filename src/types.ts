@@ -91,10 +91,30 @@ export type CapHttpData = BaseNodeData & {
   apiUrl: string;
 };
 
-export type CapEvmReadWriteData = BaseNodeData & {
-  kind: "cap.evmRead" | "cap.evmWrite";
+export type EvmBlockSelection = "LatestFinalized" | "Latest" | "Custom";
+
+export type CapEvmReadData = BaseNodeData & {
+  kind: "cap.evmRead";
   smartContractName: string;
   functionName: string;
+  /** Deployed contract address (0x...). Optional if not deployed yet. */
+  contractAddress?: string;
+  /** Chain/network to read from, e.g. "ethereum-testnet-sepolia" */
+  chainSelector: string;
+  /** Which block to read state from */
+  blockSelection: EvmBlockSelection;
+  /** Block depth when blockSelection is "Custom" */
+  customBlockDepth?: number;
+};
+
+export type CapEvmWriteData = BaseNodeData & {
+  kind: "cap.evmWrite";
+  smartContractName: string;
+  functionName: string;
+  /** Deployed contract address (0x...). Optional if not deployed yet. */
+  contractAddress?: string;
+  /** Chain/network to write to, e.g. "ethereum-testnet-sepolia" */
+  chainSelector: string;
 };
 
 export type AnyNodeData =
@@ -104,7 +124,8 @@ export type AnyNodeData =
   | TriggerEvmLogData
   | TriggerHttpData
   | CapHttpData
-  | CapEvmReadWriteData;
+  | CapEvmReadData
+  | CapEvmWriteData;
 
 export type Workflow = {
   name: string;

@@ -6,7 +6,9 @@ import type {
   TriggerEvmLogData,
   TriggerHttpData,
   CapHttpData,
-  CapEvmReadWriteData,
+  CapEvmReadData,
+  CapEvmWriteData,
+  CapEvmWriteData,
   SmartContractData,
   WebsiteData,
 } from "../types";
@@ -171,16 +173,55 @@ export function AppNode({ data }: AppNodeProps) {
           </>
         )}
 
-        {(data.kind === "cap.evmRead" || data.kind === "cap.evmWrite") && (
+        {data.kind === "cap.evmRead" && (
           <>
             <div className="node__row">
               <span className="muted">Contract:</span>{" "}
-              <b>{(data as CapEvmReadWriteData).smartContractName}</b>
+              <b>{(data as CapEvmReadData).smartContractName}</b>
             </div>
             <div className="node__row">
               <span className="muted">Fn:</span>{" "}
-              <b>{(data as CapEvmReadWriteData).functionName}</b>
+              <b>{(data as CapEvmReadData).functionName}</b>
             </div>
+            <div className="node__row">
+              <span className="muted">Network:</span>{" "}
+              <b>{(data as CapEvmReadData).chainSelector || <span className="muted">—</span>}</b>
+            </div>
+            <div className="node__row">
+              <span className="muted">Block:</span>{" "}
+              <b>
+                {(data as CapEvmReadData).blockSelection === "Custom"
+                  ? `${(data as CapEvmReadData).customBlockDepth} back`
+                  : (data as CapEvmReadData).blockSelection || "—"}
+              </b>
+            </div>
+            {(data as CapEvmReadData).contractAddress && (
+              <div className="node__row node__mono muted">
+                {(data as CapEvmReadData).contractAddress!.slice(0, 10)}…
+              </div>
+            )}
+          </>
+        )}
+
+        {data.kind === "cap.evmWrite" && (
+          <>
+            <div className="node__row">
+              <span className="muted">Contract:</span>{" "}
+              <b>{(data as CapEvmWriteData).smartContractName}</b>
+            </div>
+            <div className="node__row">
+              <span className="muted">Fn:</span>{" "}
+              <b>{(data as CapEvmWriteData).functionName}</b>
+            </div>
+            <div className="node__row">
+              <span className="muted">Network:</span>{" "}
+              <b>{(data as CapEvmWriteData).chainSelector || <span className="muted">—</span>}</b>
+            </div>
+            {(data as CapEvmWriteData).contractAddress && (
+              <div className="node__row node__mono muted">
+                {(data as CapEvmWriteData).contractAddress!.slice(0, 10)}…
+              </div>
+            )}
           </>
         )}
 
