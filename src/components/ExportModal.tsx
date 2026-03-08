@@ -25,7 +25,7 @@ export function ExportModal({
 
   const files = generateProject(workflowName, workflowDescription, nodes, edges);
   const fileNames = Object.keys(files);
-  const slug = workflowName.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "my-workflow";
+  const slug = "CRE-" + (workflowName.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "my-workflow");
 
   async function handleDownload() {
     setDownloading(true);
