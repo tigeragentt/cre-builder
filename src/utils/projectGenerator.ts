@@ -499,6 +499,7 @@ type Config = z.infer<typeof configSchema>
 ${abiConsts}
 // ─── Local Execution ───────────────────────────────────────────────────────
 ${localStubs}
+
 // ─── Handlers ──────────────────────────────────────────────────────────────
 ${handlerFunctions}
 
