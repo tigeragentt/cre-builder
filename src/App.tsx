@@ -13,6 +13,7 @@ import { Header } from "./components/Header";
 import { LeftPanel } from "./components/LeftPanel";
 import { ModalsPanel } from "./components/ModalsPanel";
 import { ExportModal } from "./components/ExportModal";
+import { GitPublishModal } from "./components/GitPublishModal";
 import type { ModalType } from "./components/LeftPanel";
 
 const NODE_TYPES = { appNode: AppNode };
@@ -25,6 +26,7 @@ export default function App() {
   });
   const [isLeftOpen, setIsLeftOpen] = useState(true);
   const [showExport, setShowExport] = useState(false);
+  const [showGitPublish, setShowGitPublish] = useState(false);
 
   /* -------------------- theme -------------------- */
   const [theme, setTheme] = useState<"dark" | "light">(
@@ -363,6 +365,7 @@ export default function App() {
         setWorkflow={setWorkflow}
         onExport={exportWorkflowJson}
         onExportTs={workflow.created ? () => setShowExport(true) : undefined}
+        onCreateOnGit={workflow.created ? () => setShowGitPublish(true) : undefined}
         onImportClick={() => fileInputRef.current?.click()}
         fileInputRef={fileInputRef}
         onImportFilePicked={onImportFilePicked}
@@ -378,6 +381,16 @@ export default function App() {
           nodes={nodes}
           edges={edges}
           onClose={() => setShowExport(false)}
+        />
+      )}
+
+      {showGitPublish && (
+        <GitPublishModal
+          workflowName={workflow.name}
+          workflowDescription={workflow.description}
+          nodes={nodes}
+          edges={edges}
+          onClose={() => setShowGitPublish(false)}
         />
       )}
 

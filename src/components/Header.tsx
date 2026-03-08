@@ -7,6 +7,7 @@ type HeaderProps = {
   setWorkflow: React.Dispatch<React.SetStateAction<Workflow>>;
   onExport: () => void;
   onExportTs?: () => void;
+  onCreateOnGit?: () => void;
   onImportClick: () => void;
   fileInputRef: { readonly current: HTMLInputElement | null };
   onImportFilePicked: (file: File | null) => void;
@@ -20,6 +21,7 @@ export function Header({
   setWorkflow,
   onExport,
   onExportTs,
+  onCreateOnGit,
   onImportClick,
   fileInputRef,
   onImportFilePicked,
@@ -55,6 +57,16 @@ export function Header({
               title="Export as a TypeScript CRE project"
             >
               Export TS Project
+            </button>
+          )}
+
+          {onCreateOnGit && (
+            <button
+              className="btn"
+              onClick={onCreateOnGit}
+              title="Create a branch in cre-scaffold-templates on GitHub"
+            >
+              🚀 Create on Git
             </button>
           )}
 
