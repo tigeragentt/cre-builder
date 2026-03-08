@@ -10,6 +10,7 @@ export type ModalType =
   | "cap.http.post"
   | "cap.evmRead"
   | "cap.evmWrite"
+  | "cap.localExecution"
   | "edit.trigger.cron";
 
 type LeftPanelProps = {
@@ -144,6 +145,15 @@ export function LeftPanel({
               title={!canAddCaps ? "Select a Trigger/Capability (or add exactly one Trigger)" : ""}
             >
               + EVM Write
+            </button>
+
+            <button
+              className="btn btn--block btn--local"
+              disabled={!canAddCaps}
+              onClick={() => openModal("cap.localExecution")}
+              title={!canAddCaps ? "Select a Trigger/Capability (or add exactly one Trigger)" : ""}
+            >
+              + Local Execution
             </button>
 
             <div className="section__note">

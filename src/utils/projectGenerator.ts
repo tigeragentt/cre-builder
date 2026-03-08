@@ -8,6 +8,7 @@ import type {
   CapHttpPostData,
   CapEvmReadData,
   CapEvmWriteData,
+  CapLocalExecutionData,
   SmartContractData,
 } from "../types";
 
@@ -274,6 +275,21 @@ function generateCapabilityCode(
     runtime.log(\`${d.smartContractName}.${d.functionName} tx: \${bytesToHex(writeResult.txHash || new Uint8Array(32))}\`)`;
   }
 
+  if (cap.data.kind === "cap.localExecution") {
+    const d = cap.data as CapLocalExecutionData;
+    const fnName = camelCase(d.name || "localExecution");
+    const logicComment = d.logic
+      ? d.logic.split("\n").map((l) => `   * ${l}`).join("\n")
+      : "   * TODO: describe what this local logic does";
+    return `
+    // ── Local Execution: ${d.name} ────────────────────────────
+    /**
+${logicComment}
+     */
+    const ${fnName}Result = ${fnName}()
+    runtime.log(\`${d.name}: \${JSON.stringify(${fnName}Result)}\`)`;
+  }
+
   return `    // TODO: implement capability "${cap.data.kind}"`;
 }
 
@@ -433,6 +449,16 @@ function generateWorkflowTs(g: WorkflowGraph): string {
 
   const abiConsts = smartContracts.map(generateAbiConst).join("\n");
 
+  // Local execution stub functions
+  const localNodes = g.nodes.filter((n) => n.data.kind === "cap.localExecution") as Node<CapLocalExecutionData>[];
+  const localStubs = localNodes.map((n) => {
+    const fn = camelCase(n.data.name || "localExecution");
+    const logicLines = n.data.logic
+      ? n.data.logic.split("\n").map((l) => ` * ${l}`).join("\n")
+      : " * TODO: implement this local execution logic";
+    return `/**\n${logicLines}\n */\nfunction ${fn}(): unknown {\n  // TODO: implement\n  throw new Error('Not implemented: ${fn}')\n}`;
+  }).join("\n\n");
+
   const handlerFunctions = handlers.map((h) => h.handlerFn).join("\n");
 
   const triggerSetups = handlers.map((h) => h.triggerSetup).join("\n");
@@ -471,6 +497,8 @@ type Config = z.infer<typeof configSchema>
 // ─── ABIs ──────────────────────────────────────────────────────────────────
 
 ${abiConsts}
+// ─── Local Execution ───────────────────────────────────────────────────────
+${localStubs}
 // ─── Handlers ──────────────────────────────────────────────────────────────
 ${handlerFunctions}
 
@@ -703,6 +731,11 @@ function collectTodos(g: WorkflowGraph): string[] {
       todos.push("Add authorized public keys to the HTTP Trigger for production deployment");
     }
   }
+
+  const localNodes = g.nodes.filter((n) => n.data.kind === "cap.localExecution") as Node<CapLocalExecutionData>[];
+  localNodes.forEach((n) => {
+    todos.push(`Implement local execution function \`${camelCase(n.data.name || "localExecution")}\` in \`workflow.ts\``);
+  });
 
   todos.push("Run `bun install` to install dependencies");
   todos.push("Run `cre workflow simulate . --target staging-settings` to test locally");
