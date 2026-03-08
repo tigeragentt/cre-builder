@@ -76,7 +76,7 @@ export default function App() {
       idCounter: getIdCounter(),
     };
     const safeName = (workflow.name || "workflow").trim().replace(/[^\w.-]+/g, "_");
-    downloadText(`${safeName}.json`, JSON.stringify(payload, null, 2));
+    downloadText(`CRE-${safeName}.json`, JSON.stringify(payload, null, 2));
   }
 
   function importWorkflowJsonText(raw: string) {
