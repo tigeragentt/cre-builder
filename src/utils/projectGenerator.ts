@@ -711,31 +711,34 @@ ${wfSlug}/                    ← Workflow folder
 - [Bun](https://bun.sh) >= 1.2.21
 - [Chainlink CRE CLI](https://docs.chain.link/cre/reference/cli)
 
-## Getting started
+## 1. Install dependencies
+
+Run from the **project root directory**:
 
 \`\`\`bash
-cd ${wfSlug}
-bun install
+bun install --cwd ./${wfSlug}
 \`\`\`
 
-## ✅ TODOs before this workflow will run
+## 2. Fill in the TODOs
 
 Search for \`TODO\` in the source files to find every placeholder.
 
 ${todoList}
 
-## Simulating locally
+## 3. Simulate the workflow
+
+Run from the **project root directory**:
 
 \`\`\`bash
-cd ${wfSlug}
-cre workflow simulate . --target staging-settings
+cre workflow simulate ${wfSlug} --target staging-settings
 \`\`\`
 
-## Deploying
+## 4. Deploy
+
+Run from the **project root directory**:
 
 \`\`\`bash
-cd ${wfSlug}
-cre workflow deploy . --target production-settings
+cre workflow deploy ${wfSlug} --target production-settings
 \`\`\`
 
 ## Push to GitHub
@@ -803,8 +806,8 @@ function collectTodos(g: WorkflowGraph): string[] {
     todos.push(`Implement local execution function \`${camelCase(n.data.name || "localExecution")}\` in \`workflow.ts\``);
   });
 
-  todos.push("Run `bun install` to install dependencies");
-  todos.push("Run `cre workflow simulate . --target staging-settings` to test locally");
+  todos.push("Run `bun install --cwd ./<workflow-folder>` from project root to install dependencies");
+  todos.push("Run `cre workflow simulate <workflow-folder> --target staging-settings` from project root to test");
 
   return todos;
 }
@@ -818,7 +821,7 @@ export function generateProject(
   edges: Edge[]
 ): ProjectFiles {
   const g: WorkflowGraph = { workflowName, workflowDescription, nodes, edges };
-  const wfSlug = slug(workflowName);
+  const wfSlug = "workflow-" + slug(workflowName);
   const configJson = generateConfigJson(g);
   const todos = collectTodos(g);
 
