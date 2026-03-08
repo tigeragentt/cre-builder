@@ -8,7 +8,6 @@ import type {
   CapHttpData,
   CapEvmReadData,
   CapEvmWriteData,
-  CapEvmWriteData,
   SmartContractData,
   WebsiteData,
 } from "../types";
