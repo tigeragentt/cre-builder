@@ -4,7 +4,7 @@ import type { Node } from "reactflow";
 import "reactflow/dist/style.css";
 import "./App.css";
 
-import type { AnyNodeData, CronScheduleType, CronIntervalUnit, Workflow, WorkflowExportV1 } from "./types";
+import type { AnyNodeData, CronScheduleType, CronIntervalUnit, EvmBlockSelection, Workflow, WorkflowExportV1 } from "./types";
 import { buildCronExpression } from "./utils/cronUtils";
 import { AppNode } from "./nodes/AppNode";
 import { useGraph, isTrigger, uid, getIdCounter, resetIdCounter } from "./graph/useGraph";
@@ -260,12 +260,16 @@ export default function App() {
       return;
     }
 
-    if (modal.type === "cap.evmRead" || modal.type === "cap.evmWrite") {
+    if (modal.type === "cap.evmRead") {
       const attach = getAttachPoint();
       if (!attach) return;
       const smartContractName = String(form.smartContractName ?? "").trim();
       const functionName = String(form.functionName ?? "").trim();
-      if (!smartContractName || !functionName) return;
+      const chainSelector = String(form.chainSelector ?? "").trim();
+      const blockSelection = (form.blockSelection as EvmBlockSelection) || "";
+      if (!smartContractName || !functionName || !chainSelector || !blockSelection) return;
+      const contractAddress = form.contractAddress ? String(form.contractAddress).trim() : undefined;
+      const customBlockDepth = blockSelection === "Custom" ? Number(form.customBlockDepth ?? 1) : undefined;
       const scId = ensureSmartContract(smartContractName, undefined, functionName);
       const id = uid("cap");
       const pos = placeRightOf(attach, 300, 0);
@@ -274,12 +278,50 @@ export default function App() {
         type: "appNode",
         position: pos,
         data: {
-          kind: modal.type,
+          kind: "cap.evmRead",
           name: functionName,
           description: String(form.description ?? "").trim(),
           smartContractName,
           functionName,
-        } as AnyNodeData,
+          contractAddress,
+          chainSelector,
+          blockSelection,
+          customBlockDepth,
+        },
+      };
+      appendCapability(attach, capNode);
+      const scPos = { x: pos.x, y: pos.y + 150 };
+      setNodes((prev) => prev.map((n) => (n.id === scId ? { ...n, position: scPos } : n)));
+      setEdges((prev) => [...prev, makeRefEdge(capNode.id, scId)]);
+      tidyRefsUnderTail(capNode.id);
+      closeModal();
+      return;
+    }
+
+    if (modal.type === "cap.evmWrite") {
+      const attach = getAttachPoint();
+      if (!attach) return;
+      const smartContractName = String(form.smartContractName ?? "").trim();
+      const functionName = String(form.functionName ?? "").trim();
+      const chainSelector = String(form.chainSelector ?? "").trim();
+      if (!smartContractName || !functionName || !chainSelector) return;
+      const contractAddress = form.contractAddress ? String(form.contractAddress).trim() : undefined;
+      const scId = ensureSmartContract(smartContractName, undefined, functionName);
+      const id = uid("cap");
+      const pos = placeRightOf(attach, 300, 0);
+      const capNode: Node<AnyNodeData> = {
+        id,
+        type: "appNode",
+        position: pos,
+        data: {
+          kind: "cap.evmWrite",
+          name: functionName,
+          description: String(form.description ?? "").trim(),
+          smartContractName,
+          functionName,
+          contractAddress,
+          chainSelector,
+        },
       };
       appendCapability(attach, capNode);
       const scPos = { x: pos.x, y: pos.y + 150 };
