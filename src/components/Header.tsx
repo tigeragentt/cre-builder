@@ -41,6 +41,22 @@ export function Header({
         <div className="header__io" style={{ marginTop: 10, display: "flex", gap: 8 }}>
           <button
             className="btn btn--ghost"
+            onClick={onImportClick}
+            title="Import workflow JSON"
+          >
+            Import JSON
+          </button>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/json,.json"
+            style={{ display: "none" }}
+            onChange={(e) => onImportFilePicked(e.target.files?.[0] ?? null)}
+          />
+
+          <button
+            className="btn btn--ghost"
             onClick={onExport}
             disabled={!workflow.created}
             title={!workflow.created ? "Create a workflow first" : "Download workflow JSON"}
@@ -57,22 +73,6 @@ export function Header({
               Export TS Project
             </button>
           )}
-
-          <button
-            className="btn btn--ghost"
-            onClick={onImportClick}
-            title="Import workflow JSON"
-          >
-            Import JSON
-          </button>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/json,.json"
-            style={{ display: "none" }}
-            onChange={(e) => onImportFilePicked(e.target.files?.[0] ?? null)}
-          />
 
           {ioError && (
             <span className="pill" style={{ background: "#3b1d1d", borderColor: "#7a2d2d" }}>
