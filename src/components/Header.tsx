@@ -6,6 +6,7 @@ type HeaderProps = {
   workflow: Workflow;
   setWorkflow: React.Dispatch<React.SetStateAction<Workflow>>;
   onExport: () => void;
+  onExportTs?: () => void;
   onImportClick: () => void;
   fileInputRef: { readonly current: HTMLInputElement | null };
   onImportFilePicked: (file: File | null) => void;
@@ -18,6 +19,7 @@ export function Header({
   workflow,
   setWorkflow,
   onExport,
+  onExportTs,
   onImportClick,
   fileInputRef,
   onImportFilePicked,
@@ -45,6 +47,16 @@ export function Header({
           >
             Export JSON
           </button>
+
+          {onExportTs && (
+            <button
+              className="btn btn--ghost"
+              onClick={onExportTs}
+              title="Export as a TypeScript CRE project"
+            >
+              Export TS Project
+            </button>
+          )}
 
           <button
             className="btn btn--ghost"

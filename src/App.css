@@ -801,3 +801,80 @@ select {
 .react-flow__edge.edge--ref {
   z-index: 0;
 }
+
+/* ── Export Modal ─────────────────────────────────────────────── */
+.export-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.export-modal__hint {
+  font-size: 13px;
+  color: var(--muted);
+  background: var(--hint-bg);
+  border: 1px dashed var(--hint-border);
+  border-radius: var(--radiusSm);
+  padding: 10px 12px;
+}
+
+.export-modal__hint code {
+  font-family: var(--mono);
+  background: rgba(255,255,255,0.08);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.export-modal__layout {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radiusSm);
+  overflow: hidden;
+  min-height: 360px;
+  max-height: 480px;
+}
+
+.export-modal__tree {
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  background: var(--sidebar-bg, var(--bg2));
+}
+
+.export-modal__file {
+  text-align: left;
+  font-size: 11px;
+  font-family: var(--mono);
+  padding: 7px 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text2);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.export-modal__file:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.export-modal__file--active {
+  background: var(--accent, #375bd2);
+  color: #fff;
+}
+
+.export-modal__preview {
+  flex: 1;
+  overflow: auto;
+  margin: 0;
+  padding: 12px;
+  font-size: 11px;
+  font-family: var(--mono);
+  line-height: 1.5;
+  background: var(--bg);
+  color: var(--text2);
+  white-space: pre;
+}

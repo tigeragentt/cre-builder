@@ -12,6 +12,7 @@ import { safeJsonParse, downloadText, validateAndNormalizeImport } from "./io/wo
 import { Header } from "./components/Header";
 import { LeftPanel } from "./components/LeftPanel";
 import { ModalsPanel } from "./components/ModalsPanel";
+import { ExportModal } from "./components/ExportModal";
 import type { ModalType } from "./components/LeftPanel";
 
 const NODE_TYPES = { appNode: AppNode };
@@ -23,6 +24,7 @@ export default function App() {
     created: false,
   });
   const [isLeftOpen, setIsLeftOpen] = useState(true);
+  const [showExport, setShowExport] = useState(false);
 
   /* -------------------- theme -------------------- */
   const [theme, setTheme] = useState<"dark" | "light">(
@@ -360,6 +362,7 @@ export default function App() {
         workflow={workflow}
         setWorkflow={setWorkflow}
         onExport={exportWorkflowJson}
+        onExportTs={workflow.created ? () => setShowExport(true) : undefined}
         onImportClick={() => fileInputRef.current?.click()}
         fileInputRef={fileInputRef}
         onImportFilePicked={onImportFilePicked}
@@ -367,6 +370,16 @@ export default function App() {
         theme={theme}
         onToggleTheme={toggleTheme}
       />
+
+      {showExport && (
+        <ExportModal
+          workflowName={workflow.name}
+          workflowDescription={workflow.description}
+          nodes={nodes}
+          edges={edges}
+          onClose={() => setShowExport(false)}
+        />
+      )}
 
       <div className="body">
         <LeftPanel
