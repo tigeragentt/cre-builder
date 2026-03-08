@@ -212,8 +212,7 @@ function generateCapabilityCode(
     if (sc?.abi) {
       return `
     // ── EVM READ: ${d.smartContractName}.${d.functionName} ──────
-    const ${contractVar}Client = new cre.capabilities.EVMClient(network.chainSelector.selector)
-    const ${contractVar}ReadResult = ${contractVar}Client.callContract(runtime, {
+    const ${contractVar}ReadResult = evmClient.callContract(runtime, {
       to: runtime.config.${camelCase((d.smartContractName || "contract") + "Address")} as \`0x\${string}\`,
       data: encodeFunctionData({
         abi: ${contractVar}Abi,
@@ -234,8 +233,7 @@ function generateCapabilityCode(
     // ── EVM READ: ${d.smartContractName}.${d.functionName} ──────
     // TODO: If you have the ABI, add it to the Smart Contract block to get typed code.
     //       For now, using manual encoding — replace types/args as needed.
-    const ${contractVar}Client = new cre.capabilities.EVMClient(network.chainSelector.selector)
-    const ${contractVar}ReadResult = ${contractVar}Client.callContract(runtime, {
+    const ${contractVar}ReadResult = evmClient.callContract(runtime, {
       to: runtime.config.${camelCase((d.smartContractName || "contract") + "Address")} as \`0x\${string}\`,
       data: encodeFunctionData({
         abi: parseAbi(['function ${d.functionName}() view returns (uint256)']), // TODO: fix signature
@@ -262,7 +260,7 @@ function generateCapabilityCode(
       signingAlgo: 'ecdsa',
       hashingAlgo: 'keccak256',
     }).result()
-    const writeResult = network && new cre.capabilities.EVMClient(network.chainSelector.selector)
+    const writeResult = evmClient
       .writeReport(runtime, {
         receiver: runtime.config.consumerAddress,
         report,
