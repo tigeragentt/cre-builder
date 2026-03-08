@@ -8,6 +8,7 @@ export type NodeKind =
   | "cap.http.post"
   | "cap.evmRead"
   | "cap.evmWrite"
+  | "cap.localExecution"
   | "smartContract"
   | "website";
 
@@ -130,6 +131,12 @@ export type CapEvmWriteData = BaseNodeData & {
   chainSelector: string;
 };
 
+export type CapLocalExecutionData = BaseNodeData & {
+  kind: "cap.localExecution";
+  /** Free-text description of what the local logic does */
+  logic: string;
+};
+
 export type AnyNodeData =
   | SmartContractData
   | WebsiteData
@@ -139,7 +146,8 @@ export type AnyNodeData =
   | CapHttpGetData
   | CapHttpPostData
   | CapEvmReadData
-  | CapEvmWriteData;
+  | CapEvmWriteData
+  | CapLocalExecutionData;
 
 export type Workflow = {
   name: string;

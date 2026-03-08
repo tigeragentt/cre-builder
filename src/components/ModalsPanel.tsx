@@ -122,6 +122,50 @@ export function ModalsPanel({ modal, up, submitModal, closeModal }: ModalsPanelP
       {modal.type === "cap.evmWrite" && (
         <EvmWriteModal up={up} onSubmit={submitModal} onClose={closeModal} />
       )}
+
+      {modal.type === "cap.localExecution" && (
+        <Modal title="Add Local Execution" onClose={closeModal}>
+          <div className="form">
+            <div className="form__hint">
+              Represents business logic that runs <b>locally</b> on the CRE node — no external calls or on-chain reads.
+              Use this for computation, data transformation, validation, or any custom logic between capabilities.
+            </div>
+
+            <div className="form__field">
+              <label className="label">Name <span className="req">*</span></label>
+              <input
+                className="input"
+                placeholder="e.g. Compute Price Average"
+                onChange={(e) => up("name", e.target.value)}
+              />
+            </div>
+
+            <div className="form__field">
+              <label className="label">Logic / Behavior <span className="muted">(what does this step do?)</span></label>
+              <textarea
+                className="textarea"
+                rows={4}
+                placeholder={"e.g. Read the HTTP response, compute a weighted average of all prices,\nreject values outside the 2σ band, return the final price as a bigint."}
+                onChange={(e) => up("logic", e.target.value)}
+              />
+            </div>
+
+            <div className="form__field">
+              <label className="label">Description <span className="muted">(optional, shown on hover)</span></label>
+              <textarea
+                className="textarea"
+                rows={2}
+                onChange={(e) => up("description", e.target.value)}
+              />
+            </div>
+
+            <div className="form__actions">
+              <button className="btn" onClick={submitModal}>Add</button>
+              <button className="btn btn--ghost" onClick={closeModal}>Cancel</button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </>
   );
 }

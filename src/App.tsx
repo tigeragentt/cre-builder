@@ -346,6 +346,29 @@ export default function App() {
       closeModal();
       return;
     }
+
+    if (modal.type === "cap.localExecution") {
+      const attach = getAttachPoint();
+      if (!attach) return;
+      const name = String(form.name ?? "").trim();
+      if (!name) return;
+      const id = uid("cap");
+      const pos = placeRightOf(attach, 300, 0);
+      const capNode: Node<AnyNodeData> = {
+        id,
+        type: "appNode",
+        position: pos,
+        data: {
+          kind: "cap.localExecution",
+          name,
+          description: String(form.description ?? "").trim(),
+          logic: String(form.logic ?? "").trim(),
+        },
+      };
+      appendCapability(attach, capNode);
+      closeModal();
+      return;
+    }
   }
 
   /* -------------------- derived -------------------- */

@@ -9,6 +9,7 @@ import type {
   CapHttpPostData,
   CapEvmReadData,
   CapEvmWriteData,
+  CapLocalExecutionData,
   SmartContractData,
   WebsiteData,
 } from "../types";
@@ -22,8 +23,9 @@ export function kindLabel(k: NodeKind): string {
     case "cap.http.get":    return "HTTP GET";
     case "cap.http.post":   return "HTTP POST";
     case "cap.evmRead":     return "EVM Read";
-    case "cap.evmWrite":    return "EVM Write";
-    case "smartContract":   return "Smart Contract";
+    case "cap.evmWrite":         return "EVM Write";
+    case "cap.localExecution":   return "Local Execution";
+    case "smartContract":        return "Smart Contract";
     case "website":         return "Website";
     default:                return k;
   }
@@ -40,6 +42,8 @@ export function kindClass(k: NodeKind): string {
     case "cap.evmRead":
     case "cap.evmWrite":
       return "node node--cap";
+    case "cap.localExecution":
+      return "node node--local";
     case "smartContract":
     case "website":
       return "node node--ref";
@@ -69,7 +73,8 @@ export function AppNode({ data }: AppNodeProps) {
       {(data.kind === "cap.http.get" ||
         data.kind === "cap.http.post" ||
         data.kind === "cap.evmRead" ||
-        data.kind === "cap.evmWrite") && (
+        data.kind === "cap.evmWrite" ||
+        data.kind === "cap.localExecution") && (
         <Handle className="handle" type="target" position={Position.Left} />
       )}
 
@@ -84,7 +89,8 @@ export function AppNode({ data }: AppNodeProps) {
       {(data.kind === "cap.http.get" ||
         data.kind === "cap.http.post" ||
         data.kind === "cap.evmRead" ||
-        data.kind === "cap.evmWrite") && (
+        data.kind === "cap.evmWrite" ||
+        data.kind === "cap.localExecution") && (
         <Handle className="handle" type="source" position={Position.Right} />
       )}
 
@@ -95,7 +101,8 @@ export function AppNode({ data }: AppNodeProps) {
         data.kind === "cap.http.get" ||
         data.kind === "cap.http.post" ||
         data.kind === "cap.evmRead" ||
-        data.kind === "cap.evmWrite") && (
+        data.kind === "cap.evmWrite" ||
+        data.kind === "cap.localExecution") && (
         <Handle
           id="refSource"
           className="handle handle--ref"
@@ -243,6 +250,19 @@ export function AppNode({ data }: AppNodeProps) {
               <div className="node__row node__mono muted">
                 {(data as CapEvmWriteData).contractAddress!.slice(0, 10)}…
               </div>
+            )}
+          </>
+        )}
+
+        {data.kind === "cap.localExecution" && (
+          <>
+            {(data as CapLocalExecutionData).logic ? (
+              <div className="node__row node__mono" style={{ whiteSpace: "pre-wrap", fontSize: 11, opacity: 0.85 }}>
+                {(data as CapLocalExecutionData).logic.slice(0, 120)}
+                {(data as CapLocalExecutionData).logic.length > 120 ? "…" : ""}
+              </div>
+            ) : (
+              <div className="node__row muted">No logic defined yet.</div>
             )}
           </>
         )}
