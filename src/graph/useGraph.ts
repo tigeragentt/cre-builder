@@ -283,7 +283,7 @@ export function useGraph() {
     const node: Node<AnyNodeData> = {
       id,
       type: "appNode",
-      position: { x: 420, y: 120 + triggerCount * 180 },
+      position: { x: 40, y: 40 + triggerCount * 180 },
       data,
     };
     setNodes((prev) => [...prev, node]);
