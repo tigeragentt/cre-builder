@@ -807,8 +807,7 @@ function collectTodos(g: WorkflowGraph): string[] {
     todos.push(`Implement local execution function \`${camelCase(n.data.name || "localExecution")}\` in \`workflow.ts\``);
   });
 
-  todos.push("Run `bun install --cwd ./<workflow-folder>` from project root to install dependencies");
-  todos.push("Run `cre workflow simulate <workflow-folder> --target staging-settings` from project root to test");
+
 
   return todos;
 }
