@@ -305,7 +305,7 @@ export default function App() {
         },
       };
       appendCapability(attach, capNode);
-      const scPos = { x: pos.x, y: pos.y + 150 };
+      const scPos = { x: pos.x, y: pos.y + 280 };
       setNodes((prev) => prev.map((n) => (n.id === scId ? { ...n, position: scPos } : n)));
       setEdges((prev) => [...prev, makeRefEdge(capNode.id, scId)]);
       tidyRefsUnderTail(capNode.id);
@@ -339,7 +339,7 @@ export default function App() {
         },
       };
       appendCapability(attach, capNode);
-      const scPos = { x: pos.x, y: pos.y + 150 };
+      const scPos = { x: pos.x, y: pos.y + 280 };
       setNodes((prev) => prev.map((n) => (n.id === scId ? { ...n, position: scPos } : n)));
       setEdges((prev) => [...prev, makeRefEdge(capNode.id, scId)]);
       tidyRefsUnderTail(capNode.id);
