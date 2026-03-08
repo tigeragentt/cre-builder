@@ -1,5 +1,5 @@
 import type { Node, Edge } from "reactflow";
-import type { AnyNodeData, TriggerCronData, SmartContractData } from "../types";
+import type { AnyNodeData, TriggerCronData, SmartContractData, CapLocalExecutionData } from "../types";
 import { kindLabel } from "../nodes/AppNode";
 
 export type ModalType =
@@ -210,6 +210,19 @@ export function LeftPanel({
                     >
                       ✏️ Edit schedule
                     </button>
+                  </div>
+                )}
+
+                {selectedNode.data.kind === "cap.localExecution" && (
+                  <div className="inspector__field">
+                    <label className="label">Logic / Behavior</label>
+                    <textarea
+                      className="textarea"
+                      rows={5}
+                      placeholder="Describe what this local execution step does..."
+                      value={(selectedNode.data as CapLocalExecutionData).logic ?? ""}
+                      onChange={(e) => patchSelected({ logic: e.target.value } as any)}
+                    />
                   </div>
                 )}
 
