@@ -67,10 +67,10 @@ export function ExportModal({
         </div>
 
         <div className="form__actions" style={{ marginTop: 12 }}>
-          <button className="btn" onClick={handleDownload} disabled={downloading}>
+          <button className="btn" onClick={async () => { await handleDownload(); onClose(); }} disabled={downloading}>
             {downloading ? "Preparing…" : `⬇️ Download ${zipName}.zip`}
           </button>
-          <button className="btn btn--ghost" onClick={onClose}>Close</button>
+          <button className="btn btn--ghost" onClick={onClose}>Cancel</button>
         </div>
       </div>
     </Modal>
