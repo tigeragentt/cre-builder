@@ -1,4 +1,4 @@
-# CRE Builder Model
+# Scaffold CRE Model
 Visual builder to create a Chainlink [CRE](https://chain.link/chainlink-runtime-environment) workflow.
 
 ## Motivation
@@ -24,4 +24,5 @@ npm run build
 ```
 
 Use the folder **dist**
+
 

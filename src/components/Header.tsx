@@ -30,7 +30,7 @@ export function Header({
       <div className="header__left">
         <div className="header__brand">
           <img src={chainlinkLogo} alt="Chainlink" className="header__logo" />
-          <div className="header__title">CRE Builder</div>
+          <div className="header__title">Scaffold CRE</div>
         </div>
         <div className="header__hint">
           One workflow at a time. Add at least one Trigger, then Capabilities as Callback to the trigger.
@@ -142,3 +142,4 @@ export function Header({
     </header>
   );
 }
+
