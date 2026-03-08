@@ -27,7 +27,8 @@ export function isKnownNodeKind(k: any): k is NodeKind {
     k === "trigger.cron" ||
     k === "trigger.evmLog" ||
     k === "trigger.http" ||
-    k === "cap.http" ||
+    k === "cap.http.get" ||
+    k === "cap.http.post" ||
     k === "cap.evmRead" ||
     k === "cap.evmWrite" ||
     k === "smartContract" ||

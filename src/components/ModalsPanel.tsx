@@ -3,6 +3,7 @@ import { CronModal } from "./CronModal";
 import { EvmLogModal } from "./EvmLogModal";
 import { EvmReadModal } from "./EvmReadModal";
 import { EvmWriteModal } from "./EvmWriteModal";
+import { HttpPostModal } from "./HttpPostModal";
 import type { ModalType } from "./LeftPanel";
 
 type ModalsPanelProps = {
@@ -84,39 +85,34 @@ export function ModalsPanel({ modal, up, submitModal, closeModal }: ModalsPanelP
         </Modal>
       )}
 
-      {modal.type === "cap.http" && (
-        <Modal title="Add HTTP Capability" onClose={closeModal}>
+      {modal.type === "cap.http.get" && (
+        <Modal title="Add HTTP GET Capability" onClose={closeModal}>
           <div className="form">
             <div className="form__hint">
-              Attaches after the selected Trigger/Capability (or the only Trigger). The capability
-              name will be the <b>Website name</b>.
+              Fetches data from an external API. A <b>Website</b> block will be auto-created or reused.
             </div>
-
             <div className="form__field">
               <label className="label">Website name</label>
-              <input className="input" onChange={(e) => up("websiteName", e.target.value)} />
+              <input className="input" placeholder="e.g. CoinGecko" onChange={(e) => up("websiteName", e.target.value)} />
             </div>
-
             <div className="form__field">
               <label className="label">API URL</label>
-              <input className="input" onChange={(e) => up("apiUrl", e.target.value)} />
+              <input className="input" placeholder="https://api.example.com/data" onChange={(e) => up("apiUrl", e.target.value)} />
             </div>
-
             <div className="form__field">
               <label className="label">Description</label>
-              <textarea className="textarea" rows={3} onChange={(e) => up("description", e.target.value)} />
+              <textarea className="textarea" rows={2} onChange={(e) => up("description", e.target.value)} />
             </div>
-
             <div className="form__actions">
               <button className="btn" onClick={submitModal}>Add</button>
               <button className="btn btn--ghost" onClick={closeModal}>Cancel</button>
             </div>
-
-            <div className="form__hint">
-              This will auto-create (or reuse) a <b>Website</b> block and add the API URL inside it.
-            </div>
           </div>
         </Modal>
+      )}
+
+      {modal.type === "cap.http.post" && (
+        <HttpPostModal up={up} onSubmit={submitModal} onClose={closeModal} />
       )}
 
       {modal.type === "cap.evmRead" && (

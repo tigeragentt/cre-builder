@@ -230,7 +230,7 @@ export default function App() {
       return;
     }
 
-    if (modal.type === "cap.http") {
+    if (modal.type === "cap.http.get" || modal.type === "cap.http.post") {
       const attach = getAttachPoint();
       if (!attach) return;
       const websiteName = String(form.websiteName ?? "").trim();
@@ -239,17 +239,28 @@ export default function App() {
       const webId = ensureWebsite(websiteName, apiUrl);
       const id = uid("cap");
       const pos = placeRightOf(attach, 300, 0);
+      const isPost = modal.type === "cap.http.post";
       const capNode: Node<AnyNodeData> = {
         id,
         type: "appNode",
         position: pos,
-        data: {
-          kind: "cap.http",
-          name: websiteName,
-          description: String(form.description ?? "").trim(),
-          websiteName,
-          apiUrl,
-        },
+        data: isPost
+          ? {
+              kind: "cap.http.post",
+              name: websiteName,
+              description: String(form.description ?? "").trim(),
+              websiteName,
+              apiUrl,
+              cacheEnabled: Boolean(form.cacheEnabled),
+              cacheMaxAgeMs: form.cacheEnabled ? Number(form.cacheMaxAgeMs ?? 60000) : undefined,
+            }
+          : {
+              kind: "cap.http.get",
+              name: websiteName,
+              description: String(form.description ?? "").trim(),
+              websiteName,
+              apiUrl,
+            },
       };
       appendCapability(attach, capNode);
       const webPos = { x: pos.x, y: pos.y + 150 };

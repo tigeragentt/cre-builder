@@ -5,7 +5,8 @@ import type {
   TriggerCronData,
   TriggerEvmLogData,
   TriggerHttpData,
-  CapHttpData,
+  CapHttpGetData,
+  CapHttpPostData,
   CapEvmReadData,
   CapEvmWriteData,
   SmartContractData,
@@ -18,7 +19,8 @@ export function kindLabel(k: NodeKind): string {
     case "trigger.cron":    return "Cron Trigger";
     case "trigger.evmLog":  return "EVM Log Trigger";
     case "trigger.http":    return "HTTP Trigger";
-    case "cap.http":        return "HTTP";
+    case "cap.http.get":    return "HTTP GET";
+    case "cap.http.post":   return "HTTP POST";
     case "cap.evmRead":     return "EVM Read";
     case "cap.evmWrite":    return "EVM Write";
     case "smartContract":   return "Smart Contract";
@@ -33,7 +35,8 @@ export function kindClass(k: NodeKind): string {
     case "trigger.evmLog":
     case "trigger.http":
       return "node node--trigger";
-    case "cap.http":
+    case "cap.http.get":
+    case "cap.http.post":
     case "cap.evmRead":
     case "cap.evmWrite":
       return "node node--cap";
@@ -63,7 +66,8 @@ export function AppNode({ data }: AppNodeProps) {
       )}
 
       {/* Callback target (LEFT) for capabilities */}
-      {(data.kind === "cap.http" ||
+      {(data.kind === "cap.http.get" ||
+        data.kind === "cap.http.post" ||
         data.kind === "cap.evmRead" ||
         data.kind === "cap.evmWrite") && (
         <Handle className="handle" type="target" position={Position.Left} />
@@ -77,7 +81,8 @@ export function AppNode({ data }: AppNodeProps) {
       )}
 
       {/* Callback source (RIGHT) for capabilities */}
-      {(data.kind === "cap.http" ||
+      {(data.kind === "cap.http.get" ||
+        data.kind === "cap.http.post" ||
         data.kind === "cap.evmRead" ||
         data.kind === "cap.evmWrite") && (
         <Handle className="handle" type="source" position={Position.Right} />
@@ -87,7 +92,8 @@ export function AppNode({ data }: AppNodeProps) {
       {(data.kind === "trigger.cron" ||
         data.kind === "trigger.evmLog" ||
         data.kind === "trigger.http" ||
-        data.kind === "cap.http" ||
+        data.kind === "cap.http.get" ||
+        data.kind === "cap.http.post" ||
         data.kind === "cap.evmRead" ||
         data.kind === "cap.evmWrite") && (
         <Handle
@@ -162,13 +168,30 @@ export function AppNode({ data }: AppNodeProps) {
           </>
         )}
 
-        {data.kind === "cap.http" && (
+        {data.kind === "cap.http.get" && (
           <>
             <div className="node__row">
               <span className="muted">Website:</span>{" "}
-              <b>{(data as CapHttpData).websiteName}</b>
+              <b>{(data as CapHttpGetData).websiteName}</b>
             </div>
-            <div className="node__row node__mono">{(data as CapHttpData).apiUrl}</div>
+            <div className="node__row node__mono muted">{(data as CapHttpGetData).apiUrl}</div>
+          </>
+        )}
+
+        {data.kind === "cap.http.post" && (
+          <>
+            <div className="node__row">
+              <span className="muted">Website:</span>{" "}
+              <b>{(data as CapHttpPostData).websiteName}</b>
+            </div>
+            <div className="node__row node__mono muted">{(data as CapHttpPostData).apiUrl}</div>
+            <div className="node__row">
+              <span className="muted">Cache:</span>{" "}
+              <b>{(data as CapHttpPostData).cacheEnabled
+                ? `${(data as CapHttpPostData).cacheMaxAgeMs ?? 60000}ms`
+                : <span className="muted">disabled</span>}
+              </b>
+            </div>
           </>
         )}
 
