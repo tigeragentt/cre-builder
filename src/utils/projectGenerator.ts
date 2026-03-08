@@ -203,11 +203,11 @@ function generateCapabilityCode(
   if (cap.data.kind === "cap.evmRead") {
     const d = cap.data as CapEvmReadData;
     const contractVar = camelCase(d.smartContractName || "contract");
-    const blockNum = d.blockSelection === "LatestFinalized"
-      ? "LAST_FINALIZED_BLOCK_NUMBER"
+    const blockNumField = d.blockSelection === "LatestFinalized"
+      ? `      blockNumber: LAST_FINALIZED_BLOCK_NUMBER,`
       : d.blockSelection === "Latest"
-      ? "LATEST_BLOCK_NUMBER"
-      : `${d.customBlockDepth ?? 10}n // custom block depth`;
+      ? `      // blockNumber omitted — uses latest block by default`
+      : `      blockNumber: ${d.customBlockDepth ?? 10}n, // custom block depth`;
 
     if (sc?.abi) {
       return `
@@ -219,7 +219,7 @@ function generateCapabilityCode(
         functionName: '${d.functionName}',
         args: [], // TODO: fill arguments if required
       }),
-      blockNumber: ${blockNum},
+${blockNumField}
     }).result()
     const ${contractVar}Decoded = decodeFunctionResult({
       abi: ${contractVar}Abi,
@@ -240,7 +240,7 @@ function generateCapabilityCode(
         functionName: '${d.functionName}',
         args: [], // TODO: fill arguments if required
       }),
-      blockNumber: ${blockNum},
+${blockNumField}
     }).result()
     // TODO: decode with decodeFunctionResult({ abi, functionName: '${d.functionName}', data: result.returnValue })
     runtime.log('${d.smartContractName}.${d.functionName} called')`;
@@ -409,11 +409,14 @@ function generateWorkflowTs(g: WorkflowGraph): string {
     .join("\n");
 
   // Build imports
+  const hasEvmRead = g.nodes.some((n) => n.data.kind === "cap.evmRead");
+
   const sdkImports = [
     "cre",
     "getNetwork",
     "type Runtime",
     hasEvm ? "TxStatus" : null,
+    hasEvmRead ? "LAST_FINALIZED_BLOCK_NUMBER" : null,
     triggers.some((t) => t.data.kind === "trigger.cron") ? "type CronPayload" : null,
     triggers.some((t) => t.data.kind === "trigger.http") ? "type HTTPPayload" : null,
     hasWrite ? "hexToBase64" : null,
