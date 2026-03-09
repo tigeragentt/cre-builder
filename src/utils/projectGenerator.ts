@@ -721,12 +721,13 @@ Run from the **project root directory**:
 cre workflow simulate ${wfSlug} --target staging-settings
 \`\`\`
 
-## 4. Deploy
+## 4. Send a real transaction on chain
 
-Run from the **project root directory**:
+On \`.env\`, define \`CRE_ETH_PRIVATE_KEY\`.
+Use \`--broadcast\` to submit the transaction:
 
 \`\`\`bash
-cre workflow deploy ${wfSlug} --target production-settings
+cre workflow simulate ${wfSlug} --target=staging-settings --broadcast
 \`\`\`
 
 ## Push to GitHub
