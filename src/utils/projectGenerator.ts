@@ -645,6 +645,19 @@ secretsNames: {}
 
 // ─── README.md ────────────────────────────────────────────────────────────────
 
+function generateDotEnv(): string {
+  return `###############################################################################
+### REQUIRED ENVIRONMENT VARIABLES - SENSITIVE INFORMATION                  ###
+### DO NOT STORE RAW SECRETS HERE IN PLAINTEXT IF AVOIDABLE                ###
+### DO NOT UPLOAD OR SHARE THIS FILE UNDER ANY CIRCUMSTANCES               ###
+###############################################################################
+# Ethereum private key or 1Password reference (e.g. op://vault/item/field)
+CRE_ETH_PRIVATE_KEY=your-eth-private-key
+# Default target used when --target flag is not specified (e.g. staging-settings, production-settings, my-target)
+CRE_TARGET=staging-settings
+`;
+}
+
 function generateGitignore(): string {
   return `node_modules/
 dist/
@@ -803,6 +816,7 @@ export function generateProject(
     // ── Root level ──────────────────────────────────────────────
     "project.yaml":             generateProjectYaml(),
     "secrets.yaml":             generateSecretsYaml(),
+    ".env":                     generateDotEnv(),
     ".cre/template.yaml":       generateCRETemplate(workflowName, workflowDescription, wfSlug),
     ".gitignore":               generateGitignore(),
     "README.md":                generateReadme(workflowName, workflowDescription, wfSlug, todos),
