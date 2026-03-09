@@ -32,8 +32,7 @@ export type SmartContractData = BaseNodeData & {
   contractName: string;
   events: string[];
   functions: string[];
-  /** Optional ABI JSON string */
-  abi?: string;
+
 };
 
 export type WebsiteData = BaseNodeData & {

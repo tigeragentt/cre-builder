@@ -9,7 +9,6 @@ import type {
   CapEvmReadData,
   CapEvmWriteData,
   CapLocalExecutionData,
-  SmartContractData,
 } from "../types";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
@@ -144,7 +143,7 @@ function generateCapabilityCode(
   _handlerName: string
 ): string {
   const refs = getRefNodes(cap.id, g.nodes, g.edges);
-  const sc = refs.find((r) => r.data.kind === "smartContract")?.data as SmartContractData | undefined;
+  void refs; // refs used implicitly via getRefNodes for edge traversal
 
   if (cap.data.kind === "cap.http.get") {
     const d = cap.data as CapHttpGetData;
@@ -209,40 +208,18 @@ function generateCapabilityCode(
       ? `      // blockNumber omitted — uses latest block by default`
       : `      blockNumber: ${d.customBlockDepth ?? 10}n, // custom block depth`;
 
-    if (sc?.abi) {
-      return `
-    // ── EVM READ: ${d.smartContractName}.${d.functionName} ──────
-    const ${contractVar}ReadResult = evmClient.callContract(runtime, {
-      to: runtime.config.${camelCase((d.smartContractName || "contract") + "Address")} as \`0x\${string}\`,
-      data: encodeFunctionData({
-        abi: ${contractVar}Abi,
-        functionName: '${d.functionName}',
-        args: [], // TODO: fill arguments if required
-      }),
-${blockNumField}
-    }).result()
-    const ${contractVar}Decoded = decodeFunctionResult({
-      abi: ${contractVar}Abi,
-      functionName: '${d.functionName}',
-      data: ${contractVar}ReadResult.returnValue,
-    })
-    runtime.log(\`${d.smartContractName}.${d.functionName} = \${${contractVar}Decoded}\`)`;
-    }
-
     return `
     // ── EVM READ: ${d.smartContractName}.${d.functionName} ──────
-    // TODO: If you have the ABI, add it to the Smart Contract block to get typed code.
-    //       For now, using manual encoding — replace types/args as needed.
     const ${contractVar}ReadResult = evmClient.callContract(runtime, {
       to: runtime.config.${camelCase((d.smartContractName || "contract") + "Address")} as \`0x\${string}\`,
       data: encodeFunctionData({
-        abi: parseAbi(['function ${d.functionName}() view returns (uint256)']), // TODO: fix signature
+        abi: parseAbi(['function ${d.functionName}() view returns (uint256)']), // TODO: fix ABI signature
         functionName: '${d.functionName}',
         args: [], // TODO: fill arguments if required
       }),
 ${blockNumField}
     }).result()
-    // TODO: decode with decodeFunctionResult({ abi, functionName: '${d.functionName}', data: result.returnValue })
+    // TODO: decode with decodeFunctionResult({ abi, functionName: '${d.functionName}', data: ${contractVar}ReadResult.returnValue })
     runtime.log('${d.smartContractName}.${d.functionName} called')`;
   }
 
@@ -378,14 +355,6 @@ ${capCode}
   };
 }
 
-// ─── ABI helper ──────────────────────────────────────────────────────────────
-
-function generateAbiConst(sc: SmartContractData): string {
-  if (sc.abi) {
-    return `const ${camelCase(sc.contractName)}Abi = ${sc.abi} as const\n`;
-  }
-  return `// TODO: paste the ABI for ${sc.contractName} here\n// const ${camelCase(sc.contractName)}Abi = [...] as const\n`;
-}
 
 // ─── workflow.ts ─────────────────────────────────────────────────────────────
 
@@ -394,9 +363,6 @@ function generateWorkflowTs(g: WorkflowGraph): string {
   const handlers = triggers.map((t) => generateHandler(t, g));
   const hasEvm = hasEvmNode(g.nodes);
   const hasWrite = g.nodes.some((n) => n.data.kind === "cap.evmWrite");
-  const smartContracts = g.nodes
-    .filter((n) => n.data.kind === "smartContract")
-    .map((n) => n.data as SmartContractData);
 
   const cfg = buildConfig(g);
 
@@ -458,7 +424,7 @@ let evmClient: cre.capabilities.EVMClient
   evmClient = new cre.capabilities.EVMClient(network.chainSelector.selector)`
     : "";
 
-  const abiConsts = smartContracts.map(generateAbiConst).join("\n");
+
 
   // Local execution stub functions
   const localNodes = g.nodes.filter((n) => n.data.kind === "cap.localExecution") as Node<CapLocalExecutionData>[];
@@ -505,9 +471,7 @@ ${schemaFields}
 
 type Config = z.infer<typeof configSchema>
 
-// ─── ABIs ──────────────────────────────────────────────────────────────────
-
-${abiConsts}${evmGlobalDeclarations}
+${evmGlobalDeclarations}
 // ─── Local Execution ───────────────────────────────────────────────────────
 ${localStubs}
 
@@ -786,7 +750,6 @@ function collectTodos(g: WorkflowGraph): string[] {
 
   if (g.nodes.some((n) => n.data.kind === "cap.evmRead" || n.data.kind === "cap.evmWrite")) {
     todos.push("Fill in EVM function argument types and values in `workflow.ts`");
-    todos.push("Add ABI JSON to the Smart Contract block in Scaffold CRE to get typed code");
   }
 
   if (g.nodes.some((n) => n.data.kind === "cap.http.get" || n.data.kind === "cap.http.post")) {
