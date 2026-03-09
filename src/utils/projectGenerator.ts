@@ -125,10 +125,9 @@ function buildConfig(g: WorkflowGraph): Record<string, unknown> {
       cfg[key] = d.contractAddress || `TODO_${(d.smartContractName || "CONTRACT").toUpperCase()}_ADDRESS`;
     });
 
-  // Consumer contract address for writes
+  // Gas limit for writes
   const hasWrite = caps.some((n) => n.data.kind === "cap.evmWrite");
   if (hasWrite) {
-    cfg.consumerAddress = "TODO_CONSUMER_CONTRACT_ADDRESS";
     cfg.gasLimit = "500000";
   }
 
@@ -239,7 +238,7 @@ ${blockNumField}
     }).result()
     const writeResult = evmClient
       .writeReport(runtime, {
-        receiver: runtime.config.consumerAddress,
+        receiver: runtime.config.${camelCase((d.smartContractName || "contract") + "Address")} as \`0x\${string}\`,
         report,
         gasConfig: { gasLimit: runtime.config.gasLimit },
       })
