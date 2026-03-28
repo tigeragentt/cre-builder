@@ -1,0 +1,194 @@
+{
+  "version": 1,
+  "workflow": {
+    "name": "Hello World",
+    "description": "",
+    "created": true
+  },
+  "nodes": [
+    {
+      "id": "trg_1769484222529_0",
+      "type": "appNode",
+      "position": {
+        "x": 420,
+        "y": 120
+      },
+      "data": {
+        "kind": "trigger.cron",
+        "name": "Every 5 min",
+        "description": "",
+        "frequencyValue": 5,
+        "frequencyUnit": "minutes"
+      },
+      "width": 240,
+      "height": 81
+    },
+    {
+      "id": "web_1769484243453_1",
+      "type": "appNode",
+      "position": {
+        "x": 720,
+        "y": 270
+      },
+      "data": {
+        "kind": "website",
+        "name": "Time",
+        "description": "Website reference",
+        "websiteName": "Time",
+        "apiUrls": [
+          "time.com"
+        ]
+      },
+      "width": 240,
+      "height": 124,
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "cap_1769484243453_2",
+      "type": "appNode",
+      "position": {
+        "x": 720,
+        "y": 120
+      },
+      "data": {
+        "kind": "cap.http",
+        "name": "Time",
+        "description": "Get Morning, Afternoon, Night",
+        "websiteName": "Time",
+        "apiUrl": "time.com"
+      },
+      "width": 240,
+      "height": 102,
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "sc_1769484260523_7",
+      "type": "appNode",
+      "position": {
+        "x": 1320,
+        "y": 270
+      },
+      "data": {
+        "kind": "smartContract",
+        "name": "HelloWorld",
+        "description": "Smart Contract reference",
+        "contractName": "HelloWorld",
+        "events": [],
+        "functions": [
+          "GetName",
+          "SetGreeting"
+        ]
+      },
+      "width": 240,
+      "height": 126
+    },
+    {
+      "id": "cap_1769484260523_8",
+      "type": "appNode",
+      "position": {
+        "x": 1020,
+        "y": 120
+      },
+      "data": {
+        "kind": "cap.evmRead",
+        "name": "GetName",
+        "description": "",
+        "smartContractName": "HelloWorld",
+        "functionName": "GetName"
+      },
+      "width": 240,
+      "height": 103,
+      "selected": true,
+      "dragging": false
+    },
+    {
+      "id": "cap_1769484273939_13",
+      "type": "appNode",
+      "position": {
+        "x": 1320,
+        "y": 120
+      },
+      "data": {
+        "kind": "cap.evmWrite",
+        "name": "SetGreeting",
+        "description": "",
+        "smartContractName": "HelloWorld",
+        "functionName": "SetGreeting"
+      },
+      "width": 240,
+      "height": 103
+    }
+  ],
+  "edges": [
+    {
+      "id": "e_1769484243454_4",
+      "source": "trg_1769484222529_0",
+      "target": "cap_1769484243453_2",
+      "type": "smoothstep",
+      "data": {
+        "kind": "callback"
+      },
+      "className": "edge edge--callback"
+    },
+    {
+      "id": "e_1769484243454_6",
+      "source": "cap_1769484243453_2",
+      "target": "web_1769484243453_1",
+      "sourceHandle": "refSource",
+      "targetHandle": "refTarget",
+      "type": "straight",
+      "data": {
+        "kind": "ref"
+      },
+      "className": "edge edge--ref"
+    },
+    {
+      "id": "e_1769484260523_10",
+      "source": "cap_1769484243453_2",
+      "target": "cap_1769484260523_8",
+      "type": "smoothstep",
+      "data": {
+        "kind": "callback"
+      },
+      "className": "edge edge--callback"
+    },
+    {
+      "id": "e_1769484260523_12",
+      "source": "cap_1769484260523_8",
+      "target": "sc_1769484260523_7",
+      "sourceHandle": "refSource",
+      "targetHandle": "refTarget",
+      "type": "straight",
+      "data": {
+        "kind": "ref"
+      },
+      "className": "edge edge--ref"
+    },
+    {
+      "id": "e_1769484273939_15",
+      "source": "cap_1769484260523_8",
+      "target": "cap_1769484273939_13",
+      "type": "smoothstep",
+      "data": {
+        "kind": "callback"
+      },
+      "className": "edge edge--callback"
+    },
+    {
+      "id": "e_1769484273939_17",
+      "source": "cap_1769484273939_13",
+      "target": "sc_1769484260523_7",
+      "sourceHandle": "refSource",
+      "targetHandle": "refTarget",
+      "type": "straight",
+      "data": {
+        "kind": "ref"
+      },
+      "className": "edge edge--ref"
+    }
+  ],
+  "selectedId": "cap_1769484273939_13",
+  "idCounter": 18
+}
