@@ -380,6 +380,7 @@ function generateWorkflowTs(g: WorkflowGraph): string {
     "cre",
     "getNetwork",
     "type Runtime",
+    hasEvm ? "type EVMClient" : null,
     hasEvm ? "TxStatus" : null,
     hasEvmRead ? "LAST_FINALIZED_BLOCK_NUMBER" : null,
     triggers.some((t) => t.data.kind === "trigger.cron") ? "type CronPayload" : null,
@@ -407,7 +408,7 @@ function generateWorkflowTs(g: WorkflowGraph): string {
     ? `
 // ─── EVM Client (module-level, initialized in initWorkflow) ────────────────
 let network: ReturnType<typeof getNetwork>
-let evmClient: cre.capabilities.EVMClient
+let evmClient: EVMClient
 `
     : "";
 
