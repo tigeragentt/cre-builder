@@ -149,7 +149,7 @@ function generateCapabilityCode(
     return `
     // ── HTTP GET: ${d.websiteName} ──────────────────────────────
     runtime.log('Fetching ${d.websiteName}')
-    const httpClient = new cre.capabilities.HTTPClient()
+    const httpClient = new HTTPClient()
     const ${camelCase(d.websiteName || "httpGet")}Response = httpClient
       .sendRequest(
         runtime,
@@ -178,7 +178,7 @@ function generateCapabilityCode(
     return `
     // ── HTTP POST: ${d.websiteName} ─────────────────────────────
     runtime.log('Posting to ${d.websiteName}')
-    const httpClient = new cre.capabilities.HTTPClient()
+    const httpClient = new HTTPClient()
     const ${camelCase(d.websiteName || "httpPost")}Response = httpClient
       .sendRequest(
         runtime,
@@ -282,7 +282,7 @@ function generateHandler(
     return {
       handlerName: hn,
       triggerVar: "cronTrigger",
-      triggerSetup: `  const cronTrigger = new cre.capabilities.CronCapability()`,
+      triggerSetup: `  const cronTrigger = new CronCapability()`,
       handlerFn: `
 export function ${hn}(runtime: Runtime<Config>, payload: CronPayload): string {
   if (!payload.scheduledExecutionTime) throw new Error('Missing scheduledExecutionTime')
@@ -299,7 +299,7 @@ ${capCode}
     return {
       handlerName: hn,
       triggerVar: "httpTrigger",
-      triggerSetup: `  const httpTrigger = new cre.capabilities.HTTPCapability()`,
+      triggerSetup: `  const httpTrigger = new HTTPCapability()`,
       handlerFn: `
 export function ${hn}(runtime: Runtime<Config>, payload: HTTPPayload): string {
   runtime.log('HTTP trigger received from ${d.websiteName || "caller"}')
@@ -376,15 +376,22 @@ function generateWorkflowTs(g: WorkflowGraph): string {
   // Build imports
   const hasEvmRead = g.nodes.some((n) => n.data.kind === "cap.evmRead");
 
+  const hasCron = triggers.some((t) => t.data.kind === "trigger.cron");
+  const hasHttp = triggers.some((t) => t.data.kind === "trigger.http");
+  const hasHttpCap = g.nodes.some((n) => n.data.kind === "cap.http.get" || n.data.kind === "cap.http.post");
+
   const sdkImports = [
     "cre",
     "getNetwork",
     "type Runtime",
-    hasEvm ? "type EVMClient" : null,
+    hasEvm ? "EVMClient" : null,
     hasEvm ? "TxStatus" : null,
     hasEvmRead ? "LAST_FINALIZED_BLOCK_NUMBER" : null,
-    triggers.some((t) => t.data.kind === "trigger.cron") ? "type CronPayload" : null,
-    triggers.some((t) => t.data.kind === "trigger.http") ? "type HTTPPayload" : null,
+    hasCron ? "CronCapability" : null,
+    hasCron ? "type CronPayload" : null,
+    hasHttp ? "HTTPCapability" : null,
+    hasHttp ? "type HTTPPayload" : null,
+    hasHttpCap ? "HTTPClient" : null,
     hasWrite ? "hexToBase64" : null,
     hasWrite ? "bytesToHex" : null,
   ].filter(Boolean).join(",\n  ");
@@ -421,7 +428,7 @@ let evmClient: EVMClient
     isTestnet: ${isTestnet(evmChain || "")},
   })
   if (!network) throw new Error(\`Network not found: \${config.chainSelectorName}\`)
-  evmClient = new cre.capabilities.EVMClient(network.chainSelector.selector)`
+  evmClient = new EVMClient(network.chainSelector.selector)`
     : "";
 
 
