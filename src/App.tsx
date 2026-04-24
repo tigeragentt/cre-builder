@@ -447,6 +447,7 @@ export default function App() {
         up={up}
         submitModal={submitModal}
         closeModal={closeModal}
+        nodes={nodes}
       />
     </div>
   );

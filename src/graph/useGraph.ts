@@ -265,7 +265,7 @@ export function useGraph() {
       data: {
         kind: "website",
         name: websiteName,
-        description: "Website reference",
+        description: "Website API reference",
         websiteName,
         apiUrls: apiUrl?.trim() ? [apiUrl.trim()] : [],
       },

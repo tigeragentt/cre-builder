@@ -1,20 +1,80 @@
+import type { Node } from "reactflow";
 import { Modal } from "./Modal";
 import { CronModal } from "./CronModal";
 import { EvmLogModal } from "./EvmLogModal";
 import { EvmReadModal } from "./EvmReadModal";
 import { EvmWriteModal } from "./EvmWriteModal";
 import { HttpPostModal } from "./HttpPostModal";
+import { HttpTriggerModal } from "./HttpTriggerModal";
+import { HttpGetModal } from "./HttpGetModal";
 import type { ModalType } from "./LeftPanel";
+import type { AnyNodeData, WebsiteData } from "../types";
+import type { KnownWebsite } from "./WebsiteApiPicker";
+
+export type KnownContract = {
+  contractName: string;
+  contractAddress?: string;
+  chainSelector?: string;
+  events: string[];
+  functions: string[];
+};
 
 type ModalsPanelProps = {
   modal: { type: ModalType; initialData?: Record<string, any> } | null;
   up: (k: string, v: any) => void;
   submitModal: () => void;
   closeModal: () => void;
+  nodes: Node<AnyNodeData>[];
 };
 
-export function ModalsPanel({ modal, up, submitModal, closeModal }: ModalsPanelProps) {
+function deriveKnownContracts(nodes: Node<AnyNodeData>[]): KnownContract[] {
+  const scMap = new Map<string, { events: string[]; functions: string[] }>();
+  for (const n of nodes) {
+    if (n.data.kind === "smartContract") {
+      const d = n.data as import("../types").SmartContractData;
+      scMap.set(d.contractName, { events: d.events, functions: d.functions });
+    }
+  }
+  const addrMap = new Map<string, { contractAddress?: string; chainSelector?: string }>();
+  for (const n of nodes) {
+    const d = n.data as any;
+    if (d.smartContractName && !addrMap.has(d.smartContractName)) {
+      addrMap.set(d.smartContractName, {
+        contractAddress: d.contractAddress,
+        chainSelector: d.chainSelector,
+      });
+    }
+  }
+  const allNames = new Set([...scMap.keys(), ...addrMap.keys()]);
+  const result: KnownContract[] = [];
+  for (const name of allNames) {
+    result.push({
+      contractName: name,
+      contractAddress: addrMap.get(name)?.contractAddress,
+      chainSelector: addrMap.get(name)?.chainSelector,
+      events: scMap.get(name)?.events ?? [],
+      functions: scMap.get(name)?.functions ?? [],
+    });
+  }
+  return result;
+}
+
+function deriveKnownWebsites(nodes: Node<AnyNodeData>[]): KnownWebsite[] {
+  const result: KnownWebsite[] = [];
+  for (const n of nodes) {
+    if (n.data.kind === "website") {
+      const d = n.data as WebsiteData;
+      result.push({ websiteName: d.websiteName, apiUrls: d.apiUrls });
+    }
+  }
+  return result;
+}
+
+export function ModalsPanel({ modal, up, submitModal, closeModal, nodes }: ModalsPanelProps) {
   if (!modal) return null;
+
+  const knownContracts = deriveKnownContracts(nodes);
+  const knownWebsites = deriveKnownWebsites(nodes);
 
   return (
     <>
@@ -33,94 +93,27 @@ export function ModalsPanel({ modal, up, submitModal, closeModal }: ModalsPanelP
       )}
 
       {modal.type === "trigger.evmLog" && (
-        <EvmLogModal up={up} onSubmit={submitModal} onClose={closeModal} />
+        <EvmLogModal up={up} onSubmit={submitModal} onClose={closeModal} knownContracts={knownContracts} />
       )}
 
       {modal.type === "trigger.http" && (
-        <Modal title="Create HTTP Trigger" onClose={closeModal}>
-          <div className="form">
-            <div className="form__hint">
-              This trigger fires when an external system sends a signed HTTP POST to the CRE gateway.
-              A <b>Website</b> block will be auto-created to represent the caller.
-            </div>
-
-            <div className="form__field">
-              <label className="label">Website caller</label>
-              <input className="input" placeholder="e.g. Price Feed Service" onChange={(e) => up("websiteName", e.target.value)} />
-            </div>
-
-            <div className="form__field">
-              <label className="label">Caller URL <span className="muted">(optional, for reference)</span></label>
-              <input className="input" placeholder="e.g. https://api.example.com" onChange={(e) => up("apiUrl", e.target.value)} />
-            </div>
-
-            <div className="form__field">
-              <label className="label">Authorized public keys <span className="muted">(one per line)</span></label>
-              <textarea
-                className="textarea"
-                rows={4}
-                placeholder={"Leave empty for simulation.\nPaste ECDSA public keys for production deployment."}
-                onChange={(e) =>
-                  up(
-                    "authorizedKeys",
-                    e.target.value
-                      .split("\n")
-                      .map((k) => k.trim())
-                      .filter(Boolean)
-                  )
-                }
-              />
-            </div>
-
-            <div className="form__field">
-              <label className="label">Description</label>
-              <textarea className="textarea" rows={2} onChange={(e) => up("description", e.target.value)} />
-            </div>
-
-            <div className="form__actions">
-              <button className="btn" onClick={submitModal}>Create</button>
-              <button className="btn btn--ghost" onClick={closeModal}>Cancel</button>
-            </div>
-          </div>
-        </Modal>
+        <HttpTriggerModal up={up} onSubmit={submitModal} onClose={closeModal} knownWebsites={knownWebsites} />
       )}
 
       {modal.type === "cap.http.get" && (
-        <Modal title="Add HTTP GET Capability" onClose={closeModal}>
-          <div className="form">
-            <div className="form__hint">
-              Fetches data from an external API. A <b>Website</b> block will be auto-created or reused.
-            </div>
-            <div className="form__field">
-              <label className="label">Website name</label>
-              <input className="input" placeholder="e.g. CoinGecko" onChange={(e) => up("websiteName", e.target.value)} />
-            </div>
-            <div className="form__field">
-              <label className="label">API URL</label>
-              <input className="input" placeholder="https://api.example.com/data" onChange={(e) => up("apiUrl", e.target.value)} />
-            </div>
-            <div className="form__field">
-              <label className="label">Description</label>
-              <textarea className="textarea" rows={2} onChange={(e) => up("description", e.target.value)} />
-            </div>
-            <div className="form__actions">
-              <button className="btn" onClick={submitModal}>Add</button>
-              <button className="btn btn--ghost" onClick={closeModal}>Cancel</button>
-            </div>
-          </div>
-        </Modal>
+        <HttpGetModal up={up} onSubmit={submitModal} onClose={closeModal} knownWebsites={knownWebsites} />
       )}
 
       {modal.type === "cap.http.post" && (
-        <HttpPostModal up={up} onSubmit={submitModal} onClose={closeModal} />
+        <HttpPostModal up={up} onSubmit={submitModal} onClose={closeModal} knownWebsites={knownWebsites} />
       )}
 
       {modal.type === "cap.evmRead" && (
-        <EvmReadModal up={up} onSubmit={submitModal} onClose={closeModal} />
+        <EvmReadModal up={up} onSubmit={submitModal} onClose={closeModal} knownContracts={knownContracts} />
       )}
 
       {modal.type === "cap.evmWrite" && (
-        <EvmWriteModal up={up} onSubmit={submitModal} onClose={closeModal} />
+        <EvmWriteModal up={up} onSubmit={submitModal} onClose={closeModal} knownContracts={knownContracts} />
       )}
 
       {modal.type === "cap.localExecution" && (

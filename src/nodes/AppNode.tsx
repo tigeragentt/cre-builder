@@ -26,7 +26,7 @@ export function kindLabel(k: NodeKind): string {
     case "cap.evmWrite":         return "EVM Write";
     case "cap.localExecution":   return "Local Execution";
     case "smartContract":        return "Smart Contract";
-    case "website":         return "Website";
+    case "website":         return "Website API";
     default:                return k;
   }
 }

@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { Modal } from "./Modal";
+import type { KnownWebsite } from "./WebsiteApiPicker";
+import { WebsiteApiPicker } from "./WebsiteApiPicker";
 
 type HttpPostModalProps = {
   up: (k: string, v: any) => void;
   onSubmit: () => void;
   onClose: () => void;
+  knownWebsites?: KnownWebsite[];
 };
 
-export function HttpPostModal({ up, onSubmit, onClose }: HttpPostModalProps) {
+export function HttpPostModal({ up, onSubmit, onClose, knownWebsites = [] }: HttpPostModalProps) {
   const [websiteName, setWebsiteName] = useState("");
   const [apiUrl, setApiUrl] = useState("");
   const [cacheEnabled, setCacheEnabled] = useState(false);
@@ -30,28 +33,16 @@ export function HttpPostModal({ up, onSubmit, onClose }: HttpPostModalProps) {
     <Modal title="Add HTTP POST Capability" onClose={onClose}>
       <div className="form">
         <div className="form__hint">
-          Sends data to an external API. A <b>Website</b> block will be auto-created or reused.
+          Sends data to an external API. A <b>Website API</b> block will be auto-created or reused.
         </div>
 
-        <div className="form__field">
-          <label className="label">Website name <span className="req">*</span></label>
-          <input
-            className="input"
-            placeholder="e.g. Notification Service"
-            value={websiteName}
-            onChange={(e) => { setWebsiteName(e.target.value); up("websiteName", e.target.value.trim()); }}
-          />
-        </div>
-
-        <div className="form__field">
-          <label className="label">API URL <span className="req">*</span></label>
-          <input
-            className="input"
-            placeholder="https://api.example.com/notify"
-            value={apiUrl}
-            onChange={(e) => { setApiUrl(e.target.value); up("apiUrl", e.target.value.trim()); }}
-          />
-        </div>
+        <WebsiteApiPicker
+          websiteName={websiteName}
+          apiUrl={apiUrl}
+          knownWebsites={knownWebsites}
+          onWebsiteNameChange={(v) => { setWebsiteName(v); up("websiteName", v.trim()); }}
+          onApiUrlChange={(v) => { setApiUrl(v); up("apiUrl", v.trim()); }}
+        />
 
         <div className="form__field">
           <label className="label">Cache settings</label>
