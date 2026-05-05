@@ -3,6 +3,7 @@ import type { Node, Edge } from "reactflow";
 import { Modal } from "./Modal";
 import { generateProject } from "../utils/projectGenerator";
 import { downloadProjectZip } from "../utils/downloadZip";
+import { sendToRemixDesktop, type BridgeStatus } from "../utils/remixDesktopBridge";
 import type { AnyNodeData } from "../types";
 
 type ExportModalProps = {
@@ -25,6 +26,9 @@ export function ExportModal({
   const zipName = "CRE-" + nameSlug;
   const [activeFile, setActiveFile] = useState(`${wfSlug}/workflow.ts`);
   const [downloading, setDownloading] = useState(false);
+  const [bridgeStatus, setBridgeStatus] = useState<BridgeStatus>("idle");
+  const [bridgeError, setBridgeError] = useState<string>("");
+  const [bridgeWorkspace, setBridgeWorkspace] = useState<string>("");
 
   const files = generateProject(workflowName, workflowDescription, nodes, edges);
   const fileNames = Object.keys(files);
@@ -37,6 +41,22 @@ export function ExportModal({
       setDownloading(false);
     }
   }
+
+  async function handleSendToDesktop() {
+    setBridgeStatus("connecting");
+    setBridgeError("");
+    setBridgeWorkspace("");
+    try {
+      const result = await sendToRemixDesktop(nameSlug, files);
+      setBridgeWorkspace(result.workspace ?? nameSlug);
+      setBridgeStatus("success");
+    } catch (err) {
+      setBridgeError(err instanceof Error ? err.message : String(err));
+      setBridgeStatus("error");
+    }
+  }
+
+  const isBridgeBusy = bridgeStatus === "connecting" || bridgeStatus === "sending";
 
   return (
     <Modal title="Export TypeScript Project" onClose={onClose}>
@@ -66,10 +86,38 @@ export function ExportModal({
           </pre>
         </div>
 
+        {/* Bridge status messages */}
+        {bridgeStatus === "error" && (
+          <div className="export-modal__status export-modal__status--error">
+            ❌ {bridgeError}
+          </div>
+        )}
+        {bridgeStatus === "success" && (
+          <div className="export-modal__status export-modal__status--success">
+            ✅ Sent to RemixDesktop — project opened in workspace <strong>{bridgeWorkspace}</strong>
+          </div>
+        )}
+
         <div className="form__actions" style={{ marginTop: 12 }}>
-          <button className="btn" onClick={async () => { await handleDownload(); onClose(); }} disabled={downloading}>
+          {/* Send to RemixDesktop via WebSocket */}
+          <button
+            className="btn btn--primary"
+            onClick={handleSendToDesktop}
+            disabled={isBridgeBusy}
+            title="Send project files directly to RemixDesktop (must be open)"
+          >
+            {isBridgeBusy ? "Connecting…" : "🖥️ Send to RemixDesktop"}
+          </button>
+
+          {/* Classic zip download */}
+          <button
+            className="btn"
+            onClick={async () => { await handleDownload(); onClose(); }}
+            disabled={downloading}
+          >
             {downloading ? "Preparing…" : `⬇️ Download ${zipName}.zip`}
           </button>
+
           <button className="btn btn--ghost" onClick={onClose}>Cancel</button>
         </div>
       </div>
