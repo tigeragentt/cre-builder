@@ -94,7 +94,7 @@ export function ExportModal({
         )}
         {bridgeStatus === "success" && (
           <div className="export-modal__status export-modal__status--success">
-            ✅ Sent to RemixDesktop — project opened in workspace <strong>{bridgeWorkspace}</strong>
+            ✅ Exported to RemixDesktop — project opened in workspace <strong>{bridgeWorkspace}</strong>
           </div>
         )}
 
@@ -104,9 +104,9 @@ export function ExportModal({
             className="btn btn--primary"
             onClick={handleSendToDesktop}
             disabled={isBridgeBusy}
-            title="Send project files directly to RemixDesktop (must be open)"
+            title="Export project files directly to RemixDesktop (must be open)"
           >
-            {isBridgeBusy ? "Connecting…" : "🖥️ Send to RemixDesktop"}
+            {isBridgeBusy ? "Connecting…" : "🖥️ Export to RemixDesktop"}
           </button>
 
           {/* Classic zip download */}
