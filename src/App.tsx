@@ -13,6 +13,7 @@ import { Header } from "./components/Header";
 import { LeftPanel } from "./components/LeftPanel";
 import { ModalsPanel } from "./components/ModalsPanel";
 import { ExportModal } from "./components/ExportModal";
+import { NodeModal } from "./components/NodeModal";
 
 import type { ModalType } from "./components/LeftPanel";
 
@@ -26,6 +27,7 @@ export default function App() {
   });
   const [isLeftOpen, setIsLeftOpen] = useState(true);
   const [showExport, setShowExport] = useState(false);
+  const [isNodePopupOpen, setIsNodePopupOpen] = useState(false);
 
 
   /* -------------------- theme -------------------- */
@@ -417,12 +419,6 @@ export default function App() {
           setIsOpen={setIsLeftOpen}
           openModal={openModal}
           selectedNode={selectedNode}
-          patchSelected={patchSelected}
-          canDelete={canDelete}
-          onDelete={() => selectedNode && deleteNode(selectedNode.id)}
-          nodes={nodes}
-          edges={edges}
-          onUnlinkEdge={(edgeId) => setEdges((prev) => prev.filter((e) => e.id !== edgeId))}
         />
 
         <main className={isLeftOpen ? "flow flow--withLeft" : "flow flow--full"}>
@@ -432,6 +428,7 @@ export default function App() {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            onNodeClick={(_, node) => { setSelectedId(node.id); setIsNodePopupOpen(true); }}
             nodeTypes={NODE_TYPES}
             fitView
           >
@@ -441,6 +438,20 @@ export default function App() {
           </ReactFlow>
         </main>
       </div>
+
+      {isNodePopupOpen && selectedNode && (
+        <NodeModal
+          selectedNode={selectedNode}
+          patchSelected={patchSelected}
+          canDelete={canDelete}
+          onDelete={() => { deleteNode(selectedNode.id); setIsNodePopupOpen(false); }}
+          nodes={nodes}
+          edges={edges}
+          onUnlinkEdge={(edgeId) => setEdges((prev) => prev.filter((e) => e.id !== edgeId))}
+          openModal={openModal}
+          onClose={() => setIsNodePopupOpen(false)}
+        />
+      )}
 
       <ModalsPanel
         modal={modal}
