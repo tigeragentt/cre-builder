@@ -741,6 +741,9 @@ select option {
 
 .modal {
   width: min(680px, 100%);
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
   border-radius: 16px;
   border: 1px solid var(--border);
   background: var(--modal-bg);
@@ -755,6 +758,7 @@ select option {
   padding: 12px 12px;
   border-bottom: 1px solid var(--border);
   background: var(--modal-header-bg);
+  flex-shrink: 0;
 }
 
 .modal__title {
@@ -764,6 +768,9 @@ select option {
 
 .modal__body {
   padding: 12px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 /* -------------------- forms -------------------- */
