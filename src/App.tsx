@@ -4,7 +4,7 @@ import type { Node } from "reactflow";
 import "reactflow/dist/style.css";
 import "./App.css";
 
-import type { AnyNodeData, CronScheduleType, CronIntervalUnit, EvmBlockSelection, Workflow, WorkflowExportV1 } from "./types";
+import type { AnyNodeData, CronScheduleType, CronIntervalUnit, EvmBlockSelection, HttpMethod, Workflow, WorkflowExportV1 } from "./types";
 import { buildCronExpression } from "./utils/cronUtils";
 import { AppNode } from "./nodes/AppNode";
 import { useGraph, isTrigger, uid, getIdCounter, resetIdCounter } from "./graph/useGraph";
@@ -236,37 +236,30 @@ export default function App() {
       return;
     }
 
-    if (modal.type === "cap.http.get" || modal.type === "cap.http.post") {
+    if (modal.type === "cap.http.request") {
       const attach = getAttachPoint();
       if (!attach) return;
       const websiteName = String(form.websiteName ?? "").trim();
       const apiUrl = String(form.apiUrl ?? "").trim();
       if (!websiteName || !apiUrl) return;
+      const method: HttpMethod = form.method === "POST" ? "POST" : "GET";
       const webId = ensureWebsite(websiteName, apiUrl);
       const id = uid("cap");
       const pos = placeRightOf(attach, 300, 0);
-      const isPost = modal.type === "cap.http.post";
       const capNode: Node<AnyNodeData> = {
         id,
         type: "appNode",
         position: pos,
-        data: isPost
-          ? {
-              kind: "cap.http.post",
-              name: websiteName,
-              description: String(form.description ?? "").trim(),
-              websiteName,
-              apiUrl,
-              cacheEnabled: Boolean(form.cacheEnabled),
-              cacheMaxAgeMs: form.cacheEnabled ? Number(form.cacheMaxAgeMs ?? 60000) : undefined,
-            }
-          : {
-              kind: "cap.http.get",
-              name: websiteName,
-              description: String(form.description ?? "").trim(),
-              websiteName,
-              apiUrl,
-            },
+        data: {
+          kind: "cap.http.request",
+          name: websiteName,
+          description: String(form.description ?? "").trim(),
+          method,
+          websiteName,
+          apiUrl,
+          cacheEnabled: Boolean(form.cacheEnabled),
+          cacheMaxAgeMs: form.cacheEnabled ? Number(form.cacheMaxAgeMs ?? 60000) : undefined,
+        },
       };
       appendCapability(attach, capNode);
       const webPos = { x: pos.x, y: pos.y + 150 };

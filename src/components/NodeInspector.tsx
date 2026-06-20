@@ -10,8 +10,7 @@ import type {
   TriggerCronData,
   TriggerEvmLogData,
   TriggerHttpData,
-  CapHttpGetData,
-  CapHttpPostData,
+  CapHttpRequestData,
   CapEvmReadData,
   CapEvmWriteData,
   CapLocalExecutionData,
@@ -19,6 +18,7 @@ import type {
   WebsiteData,
   EvmConfidenceLevel,
   EvmBlockSelection,
+  HttpMethod,
 } from "../types";
 import { kindLabel } from "../nodes/AppNode";
 
@@ -499,26 +499,22 @@ export function NodeInspector({
           );
         })()}
 
-        {/* ---- cap.http.get ---- */}
-        {selectedNode.data.kind === "cap.http.get" && (() => {
-          const d = selectedNode.data as CapHttpGetData;
-          return (
-            <WebsiteApiPicker
-              websiteName={d.websiteName}
-              apiUrl={d.apiUrl}
-              knownWebsites={knownWebsites}
-              fieldClass="inspector__field"
-              onWebsiteNameChange={(v) => patchSelected({ websiteName: v } as any)}
-              onApiUrlChange={(v) => patchSelected({ apiUrl: v } as any)}
-            />
-          );
-        })()}
-
-        {/* ---- cap.http.post ---- */}
-        {selectedNode.data.kind === "cap.http.post" && (() => {
-          const d = selectedNode.data as CapHttpPostData;
+        {/* ---- cap.http.request ---- */}
+        {selectedNode.data.kind === "cap.http.request" && (() => {
+          const d = selectedNode.data as CapHttpRequestData;
           return (
             <>
+              <div className="inspector__field">
+                <label className="label">Method</label>
+                <select
+                  className="select"
+                  value={d.method}
+                  onChange={(e) => patchSelected({ method: e.target.value as HttpMethod } as any)}
+                >
+                  <option value="GET">GET — fetch data</option>
+                  <option value="POST">POST — send data</option>
+                </select>
+              </div>
               <WebsiteApiPicker
                 websiteName={d.websiteName}
                 apiUrl={d.apiUrl}

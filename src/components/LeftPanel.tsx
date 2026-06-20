@@ -7,8 +7,7 @@ export type ModalType =
   | "trigger.cron"
   | "trigger.evmLog"
   | "trigger.http"
-  | "cap.http.get"
-  | "cap.http.post"
+  | "cap.http.request"
   | "cap.evmRead"
   | "cap.evmWrite"
   | "cap.localExecution"
@@ -105,19 +104,10 @@ export function LeftPanel({
                 <button
                   className="btn btn--block"
                   disabled={!canAddCaps}
-                  onClick={() => openModal("cap.http.get")}
+                  onClick={() => openModal("cap.http.request")}
                   title={!canAddCaps ? "Select a Trigger/Capability (or add exactly one Trigger)" : ""}
                 >
-                  + HTTP GET
-                </button>
-
-                <button
-                  className="btn btn--block"
-                  disabled={!canAddCaps}
-                  onClick={() => openModal("cap.http.post")}
-                  title={!canAddCaps ? "Select a Trigger/Capability (or add exactly one Trigger)" : ""}
-                >
-                  + HTTP POST
+                  + HTTP Request
                 </button>
 
                 <button

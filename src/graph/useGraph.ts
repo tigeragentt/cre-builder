@@ -20,8 +20,7 @@ export function isTrigger(kind: NodeKind) {
 
 export function isCapability(kind: NodeKind) {
   return (
-    kind === "cap.http.get" ||
-    kind === "cap.http.post" ||
+    kind === "cap.http.request" ||
     kind === "cap.evmRead" ||
     kind === "cap.evmWrite" ||
     kind === "cap.localExecution"
