@@ -4,9 +4,8 @@ import { CronModal } from "./CronModal";
 import { EvmLogModal } from "./EvmLogModal";
 import { EvmReadModal } from "./EvmReadModal";
 import { EvmWriteModal } from "./EvmWriteModal";
-import { HttpPostModal } from "./HttpPostModal";
+import { HttpRequestModal } from "./HttpRequestModal";
 import { HttpTriggerModal } from "./HttpTriggerModal";
-import { HttpGetModal } from "./HttpGetModal";
 import type { ModalType } from "./LeftPanel";
 import type { AnyNodeData, WebsiteData } from "../types";
 import type { KnownWebsite } from "./WebsiteApiPicker";
@@ -100,12 +99,8 @@ export function ModalsPanel({ modal, up, submitModal, closeModal, nodes }: Modal
         <HttpTriggerModal up={up} onSubmit={submitModal} onClose={closeModal} knownWebsites={knownWebsites} />
       )}
 
-      {modal.type === "cap.http.get" && (
-        <HttpGetModal up={up} onSubmit={submitModal} onClose={closeModal} knownWebsites={knownWebsites} />
-      )}
-
-      {modal.type === "cap.http.post" && (
-        <HttpPostModal up={up} onSubmit={submitModal} onClose={closeModal} knownWebsites={knownWebsites} />
+      {modal.type === "cap.http.request" && (
+        <HttpRequestModal up={up} onSubmit={submitModal} onClose={closeModal} knownWebsites={knownWebsites} />
       )}
 
       {modal.type === "cap.evmRead" && (

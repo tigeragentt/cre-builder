@@ -5,8 +5,7 @@ import type {
   TriggerCronData,
   TriggerEvmLogData,
   TriggerHttpData,
-  CapHttpGetData,
-  CapHttpPostData,
+  CapHttpRequestData,
   CapEvmReadData,
   CapEvmWriteData,
   CapLocalExecutionData,
@@ -20,8 +19,7 @@ export function kindLabel(k: NodeKind): string {
     case "trigger.cron":    return "Cron Trigger";
     case "trigger.evmLog":  return "EVM Log Trigger";
     case "trigger.http":    return "HTTP Trigger";
-    case "cap.http.get":    return "HTTP GET";
-    case "cap.http.post":   return "HTTP POST";
+    case "cap.http.request": return "HTTP Request";
     case "cap.evmRead":     return "EVM Read";
     case "cap.evmWrite":         return "EVM Write";
     case "cap.localExecution":   return "Local Execution";
@@ -37,8 +35,7 @@ export function kindClass(k: NodeKind): string {
     case "trigger.evmLog":
     case "trigger.http":
       return "node node--trigger";
-    case "cap.http.get":
-    case "cap.http.post":
+    case "cap.http.request":
     case "cap.evmRead":
     case "cap.evmWrite":
       return "node node--cap";
@@ -70,8 +67,7 @@ export function AppNode({ data }: AppNodeProps) {
       )}
 
       {/* Callback target (LEFT) for capabilities */}
-      {(data.kind === "cap.http.get" ||
-        data.kind === "cap.http.post" ||
+      {(data.kind === "cap.http.request" ||
         data.kind === "cap.evmRead" ||
         data.kind === "cap.evmWrite" ||
         data.kind === "cap.localExecution") && (
@@ -86,8 +82,7 @@ export function AppNode({ data }: AppNodeProps) {
       )}
 
       {/* Callback source (RIGHT) for capabilities */}
-      {(data.kind === "cap.http.get" ||
-        data.kind === "cap.http.post" ||
+      {(data.kind === "cap.http.request" ||
         data.kind === "cap.evmRead" ||
         data.kind === "cap.evmWrite" ||
         data.kind === "cap.localExecution") && (
@@ -98,8 +93,7 @@ export function AppNode({ data }: AppNodeProps) {
       {(data.kind === "trigger.cron" ||
         data.kind === "trigger.evmLog" ||
         data.kind === "trigger.http" ||
-        data.kind === "cap.http.get" ||
-        data.kind === "cap.http.post" ||
+        data.kind === "cap.http.request" ||
         data.kind === "cap.evmRead" ||
         data.kind === "cap.evmWrite" ||
         data.kind === "cap.localExecution") && (
@@ -175,27 +169,21 @@ export function AppNode({ data }: AppNodeProps) {
           </>
         )}
 
-        {data.kind === "cap.http.get" && (
+        {data.kind === "cap.http.request" && (
           <>
             <div className="node__row">
-              <span className="muted">Website:</span>{" "}
-              <b>{(data as CapHttpGetData).websiteName}</b>
+              <span className="muted">Method:</span>{" "}
+              <b>{(data as CapHttpRequestData).method}</b>
             </div>
-            <div className="node__row node__mono muted">{(data as CapHttpGetData).apiUrl}</div>
-          </>
-        )}
-
-        {data.kind === "cap.http.post" && (
-          <>
             <div className="node__row">
               <span className="muted">Website:</span>{" "}
-              <b>{(data as CapHttpPostData).websiteName}</b>
+              <b>{(data as CapHttpRequestData).websiteName}</b>
             </div>
-            <div className="node__row node__mono muted">{(data as CapHttpPostData).apiUrl}</div>
+            <div className="node__row node__mono muted">{(data as CapHttpRequestData).apiUrl}</div>
             <div className="node__row">
               <span className="muted">Cache:</span>{" "}
-              <b>{(data as CapHttpPostData).cacheEnabled
-                ? `${(data as CapHttpPostData).cacheMaxAgeMs ?? 60000}ms`
+              <b>{(data as CapHttpRequestData).cacheEnabled
+                ? `${(data as CapHttpRequestData).cacheMaxAgeMs ?? 60000}ms`
                 : <span className="muted">disabled</span>}
               </b>
             </div>

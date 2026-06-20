@@ -4,8 +4,7 @@ import type {
   TriggerCronData,
   TriggerHttpData,
   TriggerEvmLogData,
-  CapHttpGetData,
-  CapHttpPostData,
+  CapHttpRequestData,
   CapEvmReadData,
   CapEvmWriteData,
   CapLocalExecutionData,
@@ -107,9 +106,9 @@ function buildConfig(g: WorkflowGraph): Record<string, unknown> {
 
   // HTTP caps
   caps.forEach((n, i) => {
-    if (n.data.kind === "cap.http.get" || n.data.kind === "cap.http.post") {
-      const d = n.data as CapHttpGetData | CapHttpPostData;
-      const key = caps.filter((c) => c.data.kind === n.data.kind).length > 1
+    if (n.data.kind === "cap.http.request") {
+      const d = n.data as CapHttpRequestData;
+      const key = caps.filter((c) => c.data.kind === "cap.http.request").length > 1
         ? `apiUrl_${i}`
         : "apiUrl";
       cfg[key] = d.apiUrl || "TODO_API_URL";
@@ -144,21 +143,32 @@ function generateCapabilityCode(
   const refs = getRefNodes(cap.id, g.nodes, g.edges);
   void refs; // refs used implicitly via getRefNodes for edge traversal
 
-  if (cap.data.kind === "cap.http.get") {
-    const d = cap.data as CapHttpGetData;
+  if (cap.data.kind === "cap.http.request") {
+    const d = cap.data as CapHttpRequestData;
+    const isPost = d.method === "POST";
+    const respVar = `${camelCase(d.websiteName || (isPost ? "httpPost" : "httpGet"))}Response`;
+    const cacheStr = d.cacheEnabled
+      ? `\n            cacheSettings: { readFromCache: true, maxAgeMs: ${d.cacheMaxAgeMs ?? 60000} },`
+      : "";
+    const bodyStr = isPost
+      ? `\n            // TODO: fill request body\n            body: JSON.stringify({ /* TODO */ }),`
+      : "";
+    const statusCheck = isPost
+      ? `if (res.statusCode !== 200 && res.statusCode !== 201)\n            throw new Error(\`HTTP ${d.method} failed: \${res.statusCode}\`)`
+      : `if (res.statusCode !== 200) throw new Error(\`HTTP ${d.method} failed: \${res.statusCode}\`)`;
     return `
-    // ── HTTP GET: ${d.websiteName} ──────────────────────────────
-    runtime.log('Fetching ${d.websiteName}')
+    // ── HTTP ${d.method}: ${d.websiteName} ──────────────────────────────
+    runtime.log('${isPost ? "Posting to" : "Fetching"} ${d.websiteName}')
     const httpClient = new HTTPClient()
-    const ${camelCase(d.websiteName || "httpGet")}Response = httpClient
+    const ${respVar} = httpClient
       .sendRequest(
         runtime,
         (sendRequester) => {
           const res = sendRequester.sendRequest({
-            method: 'GET',
-            url: runtime.config.apiUrl,
+            method: '${d.method}',
+            url: runtime.config.apiUrl,${bodyStr}${cacheStr}
           }).result()
-          if (res.statusCode !== 200) throw new Error(\`HTTP GET failed: \${res.statusCode}\`)
+          ${statusCheck}
           // TODO: parse and return response
           return JSON.parse(Buffer.from(res.body).toString('utf-8'))
         },
@@ -167,35 +177,7 @@ function generateCapabilityCode(
         (a: any) => a,
       )(runtime.config)
       .result()
-    runtime.log(\`${d.websiteName} response: \${JSON.stringify(${camelCase(d.websiteName || "httpGet")}Response)}\`)`;
-  }
-
-  if (cap.data.kind === "cap.http.post") {
-    const d = cap.data as CapHttpPostData;
-    const cacheStr = d.cacheEnabled
-      ? `\n      cacheSettings: { readFromCache: true, maxAgeMs: ${d.cacheMaxAgeMs ?? 60000} },`
-      : "";
-    return `
-    // ── HTTP POST: ${d.websiteName} ─────────────────────────────
-    runtime.log('Posting to ${d.websiteName}')
-    const httpClient = new HTTPClient()
-    const ${camelCase(d.websiteName || "httpPost")}Response = httpClient
-      .sendRequest(
-        runtime,
-        (sendRequester) => {
-          const res = sendRequester.sendRequest({
-            method: 'POST',
-            url: runtime.config.apiUrl,
-            // TODO: fill request body
-            body: JSON.stringify({ /* TODO */ }),${cacheStr}
-          }).result()
-          if (res.statusCode !== 200 && res.statusCode !== 201)
-            throw new Error(\`HTTP POST failed: \${res.statusCode}\`)
-          return JSON.parse(Buffer.from(res.body).toString('utf-8'))
-        },
-        (a: any) => a,
-      )(runtime.config)
-      .result()`;
+    runtime.log(\`${d.websiteName} response: \${JSON.stringify(${respVar})}\`)`;
   }
 
   if (cap.data.kind === "cap.evmRead") {
@@ -378,7 +360,7 @@ function generateWorkflowTs(g: WorkflowGraph): string {
 
   const hasCron = triggers.some((t) => t.data.kind === "trigger.cron");
   const hasHttp = triggers.some((t) => t.data.kind === "trigger.http");
-  const hasHttpCap = g.nodes.some((n) => n.data.kind === "cap.http.get" || n.data.kind === "cap.http.post");
+  const hasHttpCap = g.nodes.some((n) => n.data.kind === "cap.http.request");
 
   const sdkImports = [
     "cre",
@@ -773,11 +755,11 @@ function collectTodos(g: WorkflowGraph): string[] {
     todos.push("Fill in EVM function argument types and values in `workflow.ts`");
   }
 
-  if (g.nodes.some((n) => n.data.kind === "cap.http.get" || n.data.kind === "cap.http.post")) {
+  if (g.nodes.some((n) => n.data.kind === "cap.http.request")) {
     todos.push("Define HTTP response types and consensus aggregation in `workflow.ts`");
   }
 
-  if (g.nodes.some((n) => n.data.kind === "cap.http.post")) {
+  if (g.nodes.some((n) => n.data.kind === "cap.http.request" && (n.data as CapHttpRequestData).method === "POST")) {
     todos.push("Fill in HTTP POST request body in `workflow.ts`");
   }
 
