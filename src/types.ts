@@ -5,6 +5,7 @@ export type NodeKind =
   | "trigger.evmLog"
   | "trigger.http"
   | "cap.http.request"
+  | "cap.http.confidential"
   | "cap.evmRead"
   | "cap.evmWrite"
   | "cap.localExecution"
@@ -101,6 +102,23 @@ export type CapHttpRequestData = BaseNodeData & {
   cacheMaxAgeMs?: number;
 };
 
+export type CapHttpConfidentialData = BaseNodeData & {
+  kind: "cap.http.confidential";
+  /** HTTP method for the request */
+  method: HttpMethod;
+  websiteName: string;
+  apiUrl: string;
+  /**
+   * Vault DON secret keys injected into headers/body via `{{.KEY}}` templates.
+   * Resolved inside the enclave — never exposed to DON nodes.
+   */
+  secretKeys: string[];
+  /** Address that created the Vault DON secrets (secret owner). */
+  ownerAddress?: string;
+  /** Whether the enclave should encrypt the response (encryptOutput). */
+  encryptOutput: boolean;
+};
+
 export type EvmBlockSelection = "LatestFinalized" | "Latest" | "Custom";
 
 export type CapEvmReadData = BaseNodeData & {
@@ -140,6 +158,7 @@ export type AnyNodeData =
   | TriggerEvmLogData
   | TriggerHttpData
   | CapHttpRequestData
+  | CapHttpConfidentialData
   | CapEvmReadData
   | CapEvmWriteData
   | CapLocalExecutionData;

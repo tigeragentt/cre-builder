@@ -11,6 +11,7 @@ import type {
   TriggerEvmLogData,
   TriggerHttpData,
   CapHttpRequestData,
+  CapHttpConfidentialData,
   CapEvmReadData,
   CapEvmWriteData,
   CapLocalExecutionData,
@@ -538,6 +539,63 @@ export function NodeInspector({
                     <span className="muted" style={{ fontSize: 12 }}>ms max age</span>
                   </div>
                 )}
+              </div>
+            </>
+          );
+        })()}
+
+        {/* ---- cap.http.confidential ---- */}
+        {selectedNode.data.kind === "cap.http.confidential" && (() => {
+          const d = selectedNode.data as CapHttpConfidentialData;
+          return (
+            <>
+              <div className="inspector__field">
+                <label className="label">Method</label>
+                <select
+                  className="select"
+                  value={d.method}
+                  onChange={(e) => patchSelected({ method: e.target.value as HttpMethod } as any)}
+                >
+                  <option value="GET">GET — fetch data</option>
+                  <option value="POST">POST — send data</option>
+                </select>
+              </div>
+              <WebsiteApiPicker
+                websiteName={d.websiteName}
+                apiUrl={d.apiUrl}
+                knownWebsites={knownWebsites}
+                fieldClass="inspector__field"
+                onWebsiteNameChange={(v) => patchSelected({ websiteName: v } as any)}
+                onApiUrlChange={(v) => patchSelected({ apiUrl: v } as any)}
+              />
+              <div className="inspector__field">
+                <label className="label">Vault DON secret keys <span className="muted">(one per line)</span></label>
+                <textarea
+                  className="textarea"
+                  rows={3}
+                  placeholder={"ANTHROPIC_API_KEY\nMY_API_TOKEN"}
+                  value={(d.secretKeys ?? []).join("\n")}
+                  onChange={(e) => patchSelected({ secretKeys: e.target.value.split("\n").map((k) => k.trim()).filter(Boolean) } as any)}
+                />
+              </div>
+              <div className="inspector__field">
+                <label className="label">Secret owner address <span className="muted">(optional)</span></label>
+                <input
+                  className="input"
+                  placeholder="0x..."
+                  value={d.ownerAddress ?? ""}
+                  onChange={(e) => patchSelected({ ownerAddress: e.target.value.trim() || undefined } as any)}
+                />
+              </div>
+              <div className="inspector__field">
+                <label className="label" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <input
+                    type="checkbox"
+                    checked={d.encryptOutput}
+                    onChange={(e) => patchSelected({ encryptOutput: e.target.checked } as any)}
+                  />
+                  Encrypt enclave response
+                </label>
               </div>
             </>
           );

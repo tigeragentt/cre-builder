@@ -5,6 +5,7 @@ import { EvmLogModal } from "./EvmLogModal";
 import { EvmReadModal } from "./EvmReadModal";
 import { EvmWriteModal } from "./EvmWriteModal";
 import { HttpRequestModal } from "./HttpRequestModal";
+import { HttpConfidentialModal } from "./HttpConfidentialModal";
 import { HttpTriggerModal } from "./HttpTriggerModal";
 import type { ModalType } from "./LeftPanel";
 import type { AnyNodeData, WebsiteData } from "../types";
@@ -101,6 +102,10 @@ export function ModalsPanel({ modal, up, submitModal, closeModal, nodes }: Modal
 
       {modal.type === "cap.http.request" && (
         <HttpRequestModal up={up} onSubmit={submitModal} onClose={closeModal} knownWebsites={knownWebsites} />
+      )}
+
+      {modal.type === "cap.http.confidential" && (
+        <HttpConfidentialModal up={up} onSubmit={submitModal} onClose={closeModal} knownWebsites={knownWebsites} />
       )}
 
       {modal.type === "cap.evmRead" && (

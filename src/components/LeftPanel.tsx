@@ -8,6 +8,7 @@ export type ModalType =
   | "trigger.evmLog"
   | "trigger.http"
   | "cap.http.request"
+  | "cap.http.confidential"
   | "cap.evmRead"
   | "cap.evmWrite"
   | "cap.localExecution"
@@ -108,6 +109,15 @@ export function LeftPanel({
                   title={!canAddCaps ? "Select a Trigger/Capability (or add exactly one Trigger)" : ""}
                 >
                   + HTTP Request
+                </button>
+
+                <button
+                  className="btn btn--block"
+                  disabled={!canAddCaps}
+                  onClick={() => openModal("cap.http.confidential")}
+                  title={!canAddCaps ? "Select a Trigger/Capability (or add exactly one Trigger)" : ""}
+                >
+                  + HTTP Request Confidential
                 </button>
 
                 <button

@@ -270,6 +270,43 @@ export default function App() {
       return;
     }
 
+    if (modal.type === "cap.http.confidential") {
+      const attach = getAttachPoint();
+      if (!attach) return;
+      const websiteName = String(form.websiteName ?? "").trim();
+      const apiUrl = String(form.apiUrl ?? "").trim();
+      if (!websiteName || !apiUrl) return;
+      const method: HttpMethod = form.method === "POST" ? "POST" : "GET";
+      const secretKeys: string[] = Array.isArray(form.secretKeys) ? form.secretKeys : [];
+      const ownerAddress = form.ownerAddress ? String(form.ownerAddress).trim() : undefined;
+      const webId = ensureWebsite(websiteName, apiUrl);
+      const id = uid("cap");
+      const pos = placeRightOf(attach, 300, 0);
+      const capNode: Node<AnyNodeData> = {
+        id,
+        type: "appNode",
+        position: pos,
+        data: {
+          kind: "cap.http.confidential",
+          name: websiteName,
+          description: String(form.description ?? "").trim(),
+          method,
+          websiteName,
+          apiUrl,
+          secretKeys,
+          ownerAddress,
+          encryptOutput: Boolean(form.encryptOutput),
+        },
+      };
+      appendCapability(attach, capNode);
+      const webPos = { x: pos.x, y: pos.y + 150 };
+      setNodes((prev) => prev.map((n) => (n.id === webId ? { ...n, position: webPos } : n)));
+      setEdges((prev) => [...prev, makeRefEdge(capNode.id, webId)]);
+      tidyRefsUnderTail(capNode.id);
+      closeModal();
+      return;
+    }
+
     if (modal.type === "cap.evmRead") {
       const attach = getAttachPoint();
       if (!attach) return;

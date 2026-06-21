@@ -5,6 +5,7 @@ import type {
   TriggerHttpData,
   TriggerEvmLogData,
   CapHttpRequestData,
+  CapHttpConfidentialData,
   CapEvmReadData,
   CapEvmWriteData,
   CapLocalExecutionData,
@@ -174,6 +175,47 @@ function generateCapabilityCode(
         },
         // TODO: define consensus aggregation for your response type
         // ConsensusAggregationByFields<YourType>({ field: median })
+        (a: any) => a,
+      )(runtime.config)
+      .result()
+    runtime.log(\`${d.websiteName} response: \${JSON.stringify(${respVar})}\`)`;
+  }
+
+  if (cap.data.kind === "cap.http.confidential") {
+    const d = cap.data as CapHttpConfidentialData;
+    const isPost = d.method === "POST";
+    const respVar = `${camelCase(d.websiteName || "confidentialHttp")}Response`;
+    const owner = d.ownerAddress || "0xYourOwnerAddress";
+    const secretsStr = (d.secretKeys ?? []).length
+      ? (d.secretKeys ?? []).map((k) => `\n            { key: '${k}', owner: '${owner}' },`).join("")
+      : `\n            // TODO: declare each Vault DON secret used in the request\n            // { key: 'MY_API_KEY', owner: '${owner}' },`;
+    const headerExample = (d.secretKeys ?? [])[0];
+    const headersStr = `\n          multiHeaders: {\n            'Content-Type': { values: ['application/json'] },${headerExample ? `\n            // Inject a Vault DON secret via {{.KEY}} template:\n            'Authorization': { values: ['Bearer {{.${headerExample}}}'] },` : `\n            // TODO: add headers; inject secrets via {{.KEY}} templates`}\n          },`;
+    const bodyStr = isPost
+      ? `\n          // TODO: fill request body\n          bodyString: JSON.stringify({ /* TODO */ }),`
+      : "";
+    return `
+    // ── Confidential HTTP ${d.method}: ${d.websiteName} ─────────────
+    runtime.log('Confidential request to ${d.websiteName}')
+    const confidentialHttpClient = new ConfidentialHTTPClient()
+    const ${respVar} = confidentialHttpClient
+      .sendRequest(
+        runtime,
+        (req: ConfidentialHTTPSendRequester) => {
+          const res = req.sendRequest({
+            request: {
+              url: '${d.apiUrl}',
+              method: '${d.method}',${bodyStr}${headersStr}
+            },
+            vaultDonSecrets: [${secretsStr}
+            ],
+            encryptOutput: ${d.encryptOutput ? "true" : "false"},
+          }).result()
+          // TODO: parse and return response
+          return JSON.parse(new TextDecoder().decode(res.body))
+        },
+        // TODO: define consensus aggregation for your response type
+        // ConsensusAggregationByFields<YourType>({ field: identical })
         (a: any) => a,
       )(runtime.config)
       .result()
@@ -361,6 +403,7 @@ function generateWorkflowTs(g: WorkflowGraph): string {
   const hasCron = triggers.some((t) => t.data.kind === "trigger.cron");
   const hasHttp = triggers.some((t) => t.data.kind === "trigger.http");
   const hasHttpCap = g.nodes.some((n) => n.data.kind === "cap.http.request");
+  const hasConfidentialCap = g.nodes.some((n) => n.data.kind === "cap.http.confidential");
 
   const sdkImports = [
     "cre",
@@ -374,6 +417,8 @@ function generateWorkflowTs(g: WorkflowGraph): string {
     hasHttp ? "HTTPCapability" : null,
     hasHttp ? "type HTTPPayload" : null,
     hasHttpCap ? "HTTPClient" : null,
+    hasConfidentialCap ? "ConfidentialHTTPClient" : null,
+    hasConfidentialCap ? "type ConfidentialHTTPSendRequester" : null,
     hasWrite ? "hexToBase64" : null,
     hasWrite ? "bytesToHex" : null,
   ].filter(Boolean).join(",\n  ");
@@ -761,6 +806,11 @@ function collectTodos(g: WorkflowGraph): string[] {
 
   if (g.nodes.some((n) => n.data.kind === "cap.http.request" && (n.data as CapHttpRequestData).method === "POST")) {
     todos.push("Fill in HTTP POST request body in `workflow.ts`");
+  }
+
+  if (g.nodes.some((n) => n.data.kind === "cap.http.confidential")) {
+    todos.push("Store Confidential HTTP secrets in the Vault DON (`cre secrets create`) and set the secret owner address in `workflow.ts`");
+    todos.push("Reference Vault DON secrets via `{{.SECRET_NAME}}` templates in the Confidential HTTP headers/body");
   }
 
   if (g.nodes.some((n) => n.data.kind === "cap.evmWrite")) {

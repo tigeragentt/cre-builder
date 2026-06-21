@@ -28,6 +28,7 @@ export function isKnownNodeKind(k: any): k is NodeKind {
     k === "trigger.evmLog" ||
     k === "trigger.http" ||
     k === "cap.http.request" ||
+    k === "cap.http.confidential" ||
     k === "cap.evmRead" ||
     k === "cap.evmWrite" ||
     k === "cap.localExecution" ||
