@@ -6,6 +6,7 @@ import type {
   TriggerEvmLogData,
   TriggerHttpData,
   CapHttpRequestData,
+  CapHttpConfidentialData,
   CapEvmReadData,
   CapEvmWriteData,
   CapLocalExecutionData,
@@ -20,6 +21,7 @@ export function kindLabel(k: NodeKind): string {
     case "trigger.evmLog":  return "EVM Log Trigger";
     case "trigger.http":    return "HTTP Trigger";
     case "cap.http.request": return "HTTP Request";
+    case "cap.http.confidential": return "HTTP Request Confidential";
     case "cap.evmRead":     return "EVM Read";
     case "cap.evmWrite":         return "EVM Write";
     case "cap.localExecution":   return "Local Execution";
@@ -36,6 +38,7 @@ export function kindClass(k: NodeKind): string {
     case "trigger.http":
       return "node node--trigger";
     case "cap.http.request":
+    case "cap.http.confidential":
     case "cap.evmRead":
     case "cap.evmWrite":
       return "node node--cap";
@@ -68,6 +71,7 @@ export function AppNode({ data }: AppNodeProps) {
 
       {/* Callback target (LEFT) for capabilities */}
       {(data.kind === "cap.http.request" ||
+        data.kind === "cap.http.confidential" ||
         data.kind === "cap.evmRead" ||
         data.kind === "cap.evmWrite" ||
         data.kind === "cap.localExecution") && (
@@ -83,6 +87,7 @@ export function AppNode({ data }: AppNodeProps) {
 
       {/* Callback source (RIGHT) for capabilities */}
       {(data.kind === "cap.http.request" ||
+        data.kind === "cap.http.confidential" ||
         data.kind === "cap.evmRead" ||
         data.kind === "cap.evmWrite" ||
         data.kind === "cap.localExecution") && (
@@ -94,6 +99,7 @@ export function AppNode({ data }: AppNodeProps) {
         data.kind === "trigger.evmLog" ||
         data.kind === "trigger.http" ||
         data.kind === "cap.http.request" ||
+        data.kind === "cap.http.confidential" ||
         data.kind === "cap.evmRead" ||
         data.kind === "cap.evmWrite" ||
         data.kind === "cap.localExecution") && (
@@ -186,6 +192,32 @@ export function AppNode({ data }: AppNodeProps) {
                 ? `${(data as CapHttpRequestData).cacheMaxAgeMs ?? 60000}ms`
                 : <span className="muted">disabled</span>}
               </b>
+            </div>
+          </>
+        )}
+
+        {data.kind === "cap.http.confidential" && (
+          <>
+            <div className="node__row">
+              <span className="muted">🔒 Method:</span>{" "}
+              <b>{(data as CapHttpConfidentialData).method}</b>
+            </div>
+            <div className="node__row">
+              <span className="muted">Website:</span>{" "}
+              <b>{(data as CapHttpConfidentialData).websiteName}</b>
+            </div>
+            <div className="node__row node__mono muted">{(data as CapHttpConfidentialData).apiUrl}</div>
+            <div className="node__row">
+              <span className="muted">Secrets:</span>{" "}
+              <b>
+                {(data as CapHttpConfidentialData).secretKeys?.length
+                  ? `${(data as CapHttpConfidentialData).secretKeys.length} key(s)`
+                  : <span className="muted">none</span>}
+              </b>
+            </div>
+            <div className="node__row">
+              <span className="muted">Encrypt output:</span>{" "}
+              <b>{(data as CapHttpConfidentialData).encryptOutput ? "yes" : "no"}</b>
             </div>
           </>
         )}
