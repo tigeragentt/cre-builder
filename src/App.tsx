@@ -369,6 +369,30 @@ export default function App() {
       closeModal();
       return;
     }
+
+    if (modal.type === "cap.confidentialWorkflows") {
+      const attach = getAttachPoint();
+      if (!attach) return;
+      const name = String(form.name ?? "").trim();
+      if (!name) return;
+      const id = uid("cap");
+      const pos = placeRightOf(attach, 300, 0);
+      const capNode: Node<AnyNodeData> = {
+        id,
+        type: "appNode",
+        position: pos,
+        data: {
+          kind: "cap.confidentialWorkflows",
+          name,
+          description: String(form.description ?? "").trim(),
+          logic: String(form.logic ?? "").trim(),
+          teeCount: Number(form.teeCount ?? 1),
+        },
+      };
+      appendCapability(attach, capNode);
+      closeModal();
+      return;
+    }
   }
 
   /* -------------------- derived -------------------- */

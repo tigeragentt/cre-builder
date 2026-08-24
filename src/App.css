@@ -47,6 +47,8 @@
   --node-ref-to: rgba(255, 255, 255, 0.05);
   --node-local-from: rgba(168, 85, 247, 0.20);
   --node-local-to: rgba(255, 255, 255, 0.05);
+  --node-tee-from: rgba(234, 88, 12, 0.22);
+  --node-tee-to: rgba(255, 255, 255, 0.05);
   --badge-bg: rgba(0, 0, 0, 0.12);
 
   /* handles */
@@ -99,6 +101,8 @@
   --node-ref-to: rgba(255, 251, 238, 0.92);
   --node-local-from: rgba(168, 85, 247, 0.14);
   --node-local-to: rgba(248, 242, 255, 0.92);
+  --node-tee-from: rgba(234, 88, 12, 0.14);
+  --node-tee-to: rgba(255, 248, 240, 0.92);
   --badge-bg: rgba(0, 0, 0, 0.06);
 
   --handle-border: rgba(0, 0, 0, 0.32);
@@ -478,6 +482,16 @@ select option {
   border-color: rgba(168, 85, 247, 0.55);
 }
 
+.btn--tee {
+  color: #ea580c;
+  border-color: rgba(234, 88, 12, 0.35);
+}
+
+.btn--tee:not(:disabled):hover {
+  background: rgba(234, 88, 12, 0.1);
+  border-color: rgba(234, 88, 12, 0.55);
+}
+
 .btn--danger:not(:disabled):hover {
   background: rgba(224, 92, 92, 0.12);
   border-color: rgba(224, 92, 92, 0.5);
@@ -654,6 +668,10 @@ select option {
 
 .node--local {
   background: linear-gradient(180deg, var(--node-local-from), var(--node-local-to));
+}
+
+.node--tee {
+  background: linear-gradient(180deg, var(--node-tee-from), var(--node-tee-to));
 }
 
 .node__top {

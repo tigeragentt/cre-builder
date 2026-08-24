@@ -14,6 +14,7 @@ import type {
   CapEvmReadData,
   CapEvmWriteData,
   CapLocalExecutionData,
+  CapConfidentialWorkflowsData,
   SmartContractData,
   WebsiteData,
   EvmConfidenceLevel,
@@ -89,7 +90,7 @@ function EvmContractPicker({
   const [addingNew, setAddingNew] = useState(false);
   const [chainPreset, setChainPreset] = useState(() => {
     const isKnown = EVM_CHAIN_OPTIONS.some(
-      (o) => o.value === chainSelector && o.value !== "" && o.value !== "other"
+      (o) => o.value === chainSelector && o.value !== "" && o.value !== "other" && !o.disabled
     );
     return isKnown ? chainSelector : chainSelector ? "other" : "";
   });
@@ -214,7 +215,7 @@ function EvmContractPicker({
           }}
         >
           {EVM_CHAIN_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
+            <option key={o.value} value={o.value} disabled={o.disabled}>{o.label}</option>
           ))}
         </select>
         {chainPreset === "other" && (
@@ -312,6 +313,7 @@ export type ModalType =
   | "cap.evmRead"
   | "cap.evmWrite"
   | "cap.localExecution"
+  | "cap.confidentialWorkflows"
   | "edit.trigger.cron";
 
 type LeftPanelProps = {
@@ -495,6 +497,15 @@ export function LeftPanel({
                   title={!canAddCaps ? "Select a Trigger/Capability (or add exactly one Trigger)" : ""}
                 >
                   + Local Execution
+                </button>
+
+                <button
+                  className="btn btn--block btn--tee"
+                  disabled={!canAddCaps}
+                  onClick={() => openModal("cap.confidentialWorkflows")}
+                  title={!canAddCaps ? "Select a Trigger/Capability (or add exactly one Trigger)" : "Runs handler inside a TEE/enclave (Confidential Workflows — private beta)"}
+                >
+                  + Confidential Workflows (TEE)
                 </button>
 
                 <div className="section__note">
@@ -763,6 +774,41 @@ export function LeftPanel({
                     />
                   </div>
                 )}
+
+                {/* ---- cap.confidentialWorkflows ---- */}
+                {selectedNode.data.kind === "cap.confidentialWorkflows" && (() => {
+                  const d = selectedNode.data as CapConfidentialWorkflowsData;
+                  return (
+                    <>
+                      <div className="inspector__field">
+                        <label className="label">TEE count</label>
+                        <input
+                          className="input"
+                          type="number"
+                          min={1}
+                          value={d.teeCount ?? 1}
+                          onChange={(e) => patchSelected({ teeCount: Number(e.target.value) } as any)}
+                        />
+                        <div className="muted" style={{ fontSize: 11, marginTop: 4 }}>
+                          Number of TEEs passed to <code>TeeConstraint</code>. Default: 1.
+                        </div>
+                      </div>
+                      <div className="inspector__field">
+                        <label className="label">TEE handler logic</label>
+                        <textarea
+                          className="textarea"
+                          rows={5}
+                          placeholder="Describe the confidential logic that runs inside the TEE/enclave..."
+                          value={d.logic ?? ""}
+                          onChange={(e) => patchSelected({ logic: e.target.value } as any)}
+                        />
+                        <div className="muted" style={{ fontSize: 11, marginTop: 4 }}>
+                          Runs via <code>handlerInTee()</code>. Requires Confidential Workflows private-beta access for deployment.
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
 
                 {/* ---- smartContract ---- */}
                 {selectedNode.data.kind === "smartContract" && (() => {

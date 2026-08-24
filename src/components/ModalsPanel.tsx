@@ -159,6 +159,65 @@ export function ModalsPanel({ modal, up, submitModal, closeModal, nodes }: Modal
           </div>
         </Modal>
       )}
+
+      {modal.type === "cap.confidentialWorkflows" && (
+        <Modal title="Add Confidential Workflows (TEE)" onClose={closeModal}>
+          <div className="form">
+            <div className="form__hint">
+              Runs the handler inside a <b>Trusted Execution Environment (TEE)</b> so node operators cannot see the data
+              it computes over. Uses <code>handlerInTee()</code> from the CRE SDK.{" "}
+              <b>Requires Confidential Workflows private-beta enrollment for deployment</b> — simulation works without it.
+            </div>
+
+            <div className="form__field">
+              <label className="label">Name <span className="req">*</span></label>
+              <input
+                className="input"
+                placeholder="e.g. Confidential Price Aggregation"
+                onChange={(e) => up("name", e.target.value)}
+              />
+            </div>
+
+            <div className="form__field">
+              <label className="label">TEE count</label>
+              <input
+                className="input"
+                type="number"
+                min={1}
+                defaultValue={1}
+                onChange={(e) => up("teeCount", Number(e.target.value))}
+              />
+              <div className="muted" style={{ fontSize: 11, marginTop: 4 }}>
+                Number of TEEs passed to <code>TeeConstraint</code>. Default: 1.
+              </div>
+            </div>
+
+            <div className="form__field">
+              <label className="label">TEE handler logic <span className="muted">(what runs inside the enclave?)</span></label>
+              <textarea
+                className="textarea"
+                rows={4}
+                placeholder={"e.g. Fetch private API key from secrets, call confidential pricing feed,\ncompute result, return encrypted output — all hidden from node operators."}
+                onChange={(e) => up("logic", e.target.value)}
+              />
+            </div>
+
+            <div className="form__field">
+              <label className="label">Description <span className="muted">(optional, shown on hover)</span></label>
+              <textarea
+                className="textarea"
+                rows={2}
+                onChange={(e) => up("description", e.target.value)}
+              />
+            </div>
+
+            <div className="form__actions">
+              <button className="btn" onClick={submitModal}>Add</button>
+              <button className="btn btn--ghost" onClick={closeModal}>Cancel</button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </>
   );
 }

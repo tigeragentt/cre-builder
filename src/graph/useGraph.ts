@@ -24,7 +24,8 @@ export function isCapability(kind: NodeKind) {
     kind === "cap.http.post" ||
     kind === "cap.evmRead" ||
     kind === "cap.evmWrite" ||
-    kind === "cap.localExecution"
+    kind === "cap.localExecution" ||
+    kind === "cap.confidentialWorkflows"
   );
 }
 

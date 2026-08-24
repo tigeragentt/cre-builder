@@ -27,7 +27,7 @@ export function EvmLogModal({ up, onSubmit, onClose, knownContracts = [] }: EvmL
 
   function applyChain(selector: string) {
     const isKnown = EVM_CHAIN_OPTIONS.some(
-      (o) => o.value === selector && o.value !== "" && o.value !== "other"
+      (o) => o.value === selector && o.value !== "" && o.value !== "other" && !o.disabled
     );
     if (isKnown) {
       setChainPreset(selector);
@@ -197,7 +197,7 @@ export function EvmLogModal({ up, onSubmit, onClose, knownContracts = [] }: EvmL
             onChange={(e) => { setChainPreset(e.target.value); up("chainSelector", e.target.value !== "other" ? e.target.value : chainCustom); }}
           >
             {EVM_CHAIN_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
+              <option key={o.value} value={o.value} disabled={o.disabled}>{o.label}</option>
             ))}
           </select>
           {chainPreset === "other" && (

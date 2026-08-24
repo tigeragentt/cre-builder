@@ -9,6 +9,7 @@ export type NodeKind =
   | "cap.evmRead"
   | "cap.evmWrite"
   | "cap.localExecution"
+  | "cap.confidentialWorkflows"
   | "smartContract"
   | "website";
 
@@ -136,6 +137,14 @@ export type CapLocalExecutionData = BaseNodeData & {
   logic: string;
 };
 
+export type CapConfidentialWorkflowsData = BaseNodeData & {
+  kind: "cap.confidentialWorkflows";
+  /** Description of the logic that runs inside the TEE/enclave */
+  logic: string;
+  /** Number of TEEs required (passed to TeeConstraint) */
+  teeCount: number;
+};
+
 export type AnyNodeData =
   | SmartContractData
   | WebsiteData
@@ -146,7 +155,8 @@ export type AnyNodeData =
   | CapHttpPostData
   | CapEvmReadData
   | CapEvmWriteData
-  | CapLocalExecutionData;
+  | CapLocalExecutionData
+  | CapConfidentialWorkflowsData;
 
 export type Workflow = {
   name: string;
