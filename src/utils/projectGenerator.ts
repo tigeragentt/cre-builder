@@ -4,8 +4,8 @@ import type {
   TriggerCronData,
   TriggerHttpData,
   TriggerEvmLogData,
-  CapHttpGetData,
-  CapHttpPostData,
+  CapHttpRequestData,
+  CapHttpConfidentialData,
   CapEvmReadData,
   CapEvmWriteData,
   CapLocalExecutionData,
@@ -107,9 +107,9 @@ function buildConfig(g: WorkflowGraph): Record<string, unknown> {
 
   // HTTP caps
   caps.forEach((n, i) => {
-    if (n.data.kind === "cap.http.get" || n.data.kind === "cap.http.post") {
-      const d = n.data as CapHttpGetData | CapHttpPostData;
-      const key = caps.filter((c) => c.data.kind === n.data.kind).length > 1
+    if (n.data.kind === "cap.http.request") {
+      const d = n.data as CapHttpRequestData;
+      const key = caps.filter((c) => c.data.kind === "cap.http.request").length > 1
         ? `apiUrl_${i}`
         : "apiUrl";
       cfg[key] = d.apiUrl || "TODO_API_URL";
@@ -144,21 +144,32 @@ function generateCapabilityCode(
   const refs = getRefNodes(cap.id, g.nodes, g.edges);
   void refs; // refs used implicitly via getRefNodes for edge traversal
 
-  if (cap.data.kind === "cap.http.get") {
-    const d = cap.data as CapHttpGetData;
+  if (cap.data.kind === "cap.http.request") {
+    const d = cap.data as CapHttpRequestData;
+    const isPost = d.method === "POST";
+    const respVar = `${camelCase(d.websiteName || (isPost ? "httpPost" : "httpGet"))}Response`;
+    const cacheStr = d.cacheEnabled
+      ? `\n            cacheSettings: { readFromCache: true, maxAgeMs: ${d.cacheMaxAgeMs ?? 60000} },`
+      : "";
+    const bodyStr = isPost
+      ? `\n            // TODO: fill request body\n            body: JSON.stringify({ /* TODO */ }),`
+      : "";
+    const statusCheck = isPost
+      ? `if (res.statusCode !== 200 && res.statusCode !== 201)\n            throw new Error(\`HTTP ${d.method} failed: \${res.statusCode}\`)`
+      : `if (res.statusCode !== 200) throw new Error(\`HTTP ${d.method} failed: \${res.statusCode}\`)`;
     return `
-    // ── HTTP GET: ${d.websiteName} ──────────────────────────────
-    runtime.log('Fetching ${d.websiteName}')
+    // ── HTTP ${d.method}: ${d.websiteName} ──────────────────────────────
+    runtime.log('${isPost ? "Posting to" : "Fetching"} ${d.websiteName}')
     const httpClient = new HTTPClient()
-    const ${camelCase(d.websiteName || "httpGet")}Response = httpClient
+    const ${respVar} = httpClient
       .sendRequest(
         runtime,
         (sendRequester) => {
           const res = sendRequester.sendRequest({
-            method: 'GET',
-            url: runtime.config.apiUrl,
+            method: '${d.method}',
+            url: runtime.config.apiUrl,${bodyStr}${cacheStr}
           }).result()
-          if (res.statusCode !== 200) throw new Error(\`HTTP GET failed: \${res.statusCode}\`)
+          ${statusCheck}
           // TODO: parse and return response
           return JSON.parse(Buffer.from(res.body).toString('utf-8'))
         },
@@ -167,35 +178,48 @@ function generateCapabilityCode(
         (a: any) => a,
       )(runtime.config)
       .result()
-    runtime.log(\`${d.websiteName} response: \${JSON.stringify(${camelCase(d.websiteName || "httpGet")}Response)}\`)`;
+    runtime.log(\`${d.websiteName} response: \${JSON.stringify(${respVar})}\`)`;
   }
 
-  if (cap.data.kind === "cap.http.post") {
-    const d = cap.data as CapHttpPostData;
-    const cacheStr = d.cacheEnabled
-      ? `\n      cacheSettings: { readFromCache: true, maxAgeMs: ${d.cacheMaxAgeMs ?? 60000} },`
+  if (cap.data.kind === "cap.http.confidential") {
+    const d = cap.data as CapHttpConfidentialData;
+    const isPost = d.method === "POST";
+    const respVar = `${camelCase(d.websiteName || "confidentialHttp")}Response`;
+    const owner = d.ownerAddress || "0xYourOwnerAddress";
+    const secretsStr = (d.secretKeys ?? []).length
+      ? (d.secretKeys ?? []).map((k) => `\n            { key: '${k}', owner: '${owner}' },`).join("")
+      : `\n            // TODO: declare each Vault DON secret used in the request\n            // { key: 'MY_API_KEY', owner: '${owner}' },`;
+    const headerExample = (d.secretKeys ?? [])[0];
+    const headersStr = `\n          multiHeaders: {\n            'Content-Type': { values: ['application/json'] },${headerExample ? `\n            // Inject a Vault DON secret via {{.KEY}} template:\n            'Authorization': { values: ['Bearer {{.${headerExample}}}'] },` : `\n            // TODO: add headers; inject secrets via {{.KEY}} templates`}\n          },`;
+    const bodyStr = isPost
+      ? `\n          // TODO: fill request body\n          bodyString: JSON.stringify({ /* TODO */ }),`
       : "";
     return `
-    // ── HTTP POST: ${d.websiteName} ─────────────────────────────
-    runtime.log('Posting to ${d.websiteName}')
-    const httpClient = new HTTPClient()
-    const ${camelCase(d.websiteName || "httpPost")}Response = httpClient
+    // ── Confidential HTTP ${d.method}: ${d.websiteName} ─────────────
+    runtime.log('Confidential request to ${d.websiteName}')
+    const confidentialHttpClient = new ConfidentialHTTPClient()
+    const ${respVar} = confidentialHttpClient
       .sendRequest(
         runtime,
-        (sendRequester) => {
-          const res = sendRequester.sendRequest({
-            method: 'POST',
-            url: runtime.config.apiUrl,
-            // TODO: fill request body
-            body: JSON.stringify({ /* TODO */ }),${cacheStr}
+        (req: ConfidentialHTTPSendRequester) => {
+          const res = req.sendRequest({
+            request: {
+              url: '${d.apiUrl}',
+              method: '${d.method}',${bodyStr}${headersStr}
+            },
+            vaultDonSecrets: [${secretsStr}
+            ],
+            encryptOutput: ${d.encryptOutput ? "true" : "false"},
           }).result()
-          if (res.statusCode !== 200 && res.statusCode !== 201)
-            throw new Error(\`HTTP POST failed: \${res.statusCode}\`)
-          return JSON.parse(Buffer.from(res.body).toString('utf-8'))
+          // TODO: parse and return response
+          return JSON.parse(new TextDecoder().decode(res.body))
         },
+        // TODO: define consensus aggregation for your response type
+        // ConsensusAggregationByFields<YourType>({ field: identical })
         (a: any) => a,
       )(runtime.config)
-      .result()`;
+      .result()
+    runtime.log(\`${d.websiteName} response: \${JSON.stringify(${respVar})}\`)`;
   }
 
   if (cap.data.kind === "cap.evmRead") {
@@ -378,7 +402,8 @@ function generateWorkflowTs(g: WorkflowGraph): string {
 
   const hasCron = triggers.some((t) => t.data.kind === "trigger.cron");
   const hasHttp = triggers.some((t) => t.data.kind === "trigger.http");
-  const hasHttpCap = g.nodes.some((n) => n.data.kind === "cap.http.get" || n.data.kind === "cap.http.post");
+  const hasHttpCap = g.nodes.some((n) => n.data.kind === "cap.http.request");
+  const hasConfidentialCap = g.nodes.some((n) => n.data.kind === "cap.http.confidential");
 
   const sdkImports = [
     "cre",
@@ -392,6 +417,8 @@ function generateWorkflowTs(g: WorkflowGraph): string {
     hasHttp ? "HTTPCapability" : null,
     hasHttp ? "type HTTPPayload" : null,
     hasHttpCap ? "HTTPClient" : null,
+    hasConfidentialCap ? "ConfidentialHTTPClient" : null,
+    hasConfidentialCap ? "type ConfidentialHTTPSendRequester" : null,
     hasWrite ? "hexToBase64" : null,
     hasWrite ? "bytesToHex" : null,
   ].filter(Boolean).join(",\n  ");
@@ -773,12 +800,17 @@ function collectTodos(g: WorkflowGraph): string[] {
     todos.push("Fill in EVM function argument types and values in `workflow.ts`");
   }
 
-  if (g.nodes.some((n) => n.data.kind === "cap.http.get" || n.data.kind === "cap.http.post")) {
+  if (g.nodes.some((n) => n.data.kind === "cap.http.request")) {
     todos.push("Define HTTP response types and consensus aggregation in `workflow.ts`");
   }
 
-  if (g.nodes.some((n) => n.data.kind === "cap.http.post")) {
+  if (g.nodes.some((n) => n.data.kind === "cap.http.request" && (n.data as CapHttpRequestData).method === "POST")) {
     todos.push("Fill in HTTP POST request body in `workflow.ts`");
+  }
+
+  if (g.nodes.some((n) => n.data.kind === "cap.http.confidential")) {
+    todos.push("Store Confidential HTTP secrets in the Vault DON (`cre secrets create`) and set the secret owner address in `workflow.ts`");
+    todos.push("Reference Vault DON secrets via `{{.SECRET_NAME}}` templates in the Confidential HTTP headers/body");
   }
 
   if (g.nodes.some((n) => n.data.kind === "cap.evmWrite")) {

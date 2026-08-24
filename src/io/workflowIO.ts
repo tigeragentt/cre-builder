@@ -27,8 +27,8 @@ export function isKnownNodeKind(k: any): k is NodeKind {
     k === "trigger.cron" ||
     k === "trigger.evmLog" ||
     k === "trigger.http" ||
-    k === "cap.http.get" ||
-    k === "cap.http.post" ||
+    k === "cap.http.request" ||
+    k === "cap.http.confidential" ||
     k === "cap.evmRead" ||
     k === "cap.evmWrite" ||
     k === "cap.localExecution" ||
@@ -45,6 +45,16 @@ export function validateAndNormalizeImport(
   if (!obj.workflow || typeof obj.workflow !== "object") return { ok: false, error: "Missing workflow object." };
   if (!Array.isArray(obj.nodes)) return { ok: false, error: "Missing nodes array." };
   if (!Array.isArray(obj.edges)) return { ok: false, error: "Missing edges array." };
+
+  // Migrate legacy nodes: the split GET/POST capabilities are now one HTTP Request.
+  for (const n of obj.nodes) {
+    const d = n?.data as any;
+    if (d && (d.kind === "cap.http.get" || d.kind === "cap.http.post")) {
+      d.method = d.kind === "cap.http.post" ? "POST" : "GET";
+      d.kind = "cap.http.request";
+      if (typeof d.cacheEnabled !== "boolean") d.cacheEnabled = false;
+    }
+  }
 
   for (const n of obj.nodes) {
     if (!n || typeof n !== "object") return { ok: false, error: "Invalid node entry." };

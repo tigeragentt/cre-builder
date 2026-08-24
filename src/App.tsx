@@ -4,7 +4,7 @@ import type { Node } from "reactflow";
 import "reactflow/dist/style.css";
 import "./App.css";
 
-import type { AnyNodeData, CronScheduleType, CronIntervalUnit, EvmBlockSelection, Workflow, WorkflowExportV1 } from "./types";
+import type { AnyNodeData, CronScheduleType, CronIntervalUnit, EvmBlockSelection, HttpMethod, Workflow, WorkflowExportV1 } from "./types";
 import { buildCronExpression } from "./utils/cronUtils";
 import { AppNode } from "./nodes/AppNode";
 import { useGraph, isTrigger, uid, getIdCounter, resetIdCounter } from "./graph/useGraph";
@@ -13,6 +13,7 @@ import { Header } from "./components/Header";
 import { LeftPanel } from "./components/LeftPanel";
 import { ModalsPanel } from "./components/ModalsPanel";
 import { ExportModal } from "./components/ExportModal";
+import { NodeModal } from "./components/NodeModal";
 
 import type { ModalType } from "./components/LeftPanel";
 
@@ -26,6 +27,7 @@ export default function App() {
   });
   const [isLeftOpen, setIsLeftOpen] = useState(true);
   const [showExport, setShowExport] = useState(false);
+  const [isNodePopupOpen, setIsNodePopupOpen] = useState(false);
 
 
   /* -------------------- theme -------------------- */
@@ -234,37 +236,67 @@ export default function App() {
       return;
     }
 
-    if (modal.type === "cap.http.get" || modal.type === "cap.http.post") {
+    if (modal.type === "cap.http.request") {
       const attach = getAttachPoint();
       if (!attach) return;
       const websiteName = String(form.websiteName ?? "").trim();
       const apiUrl = String(form.apiUrl ?? "").trim();
       if (!websiteName || !apiUrl) return;
+      const method: HttpMethod = form.method === "POST" ? "POST" : "GET";
       const webId = ensureWebsite(websiteName, apiUrl);
       const id = uid("cap");
       const pos = placeRightOf(attach, 300, 0);
-      const isPost = modal.type === "cap.http.post";
       const capNode: Node<AnyNodeData> = {
         id,
         type: "appNode",
         position: pos,
-        data: isPost
-          ? {
-              kind: "cap.http.post",
-              name: websiteName,
-              description: String(form.description ?? "").trim(),
-              websiteName,
-              apiUrl,
-              cacheEnabled: Boolean(form.cacheEnabled),
-              cacheMaxAgeMs: form.cacheEnabled ? Number(form.cacheMaxAgeMs ?? 60000) : undefined,
-            }
-          : {
-              kind: "cap.http.get",
-              name: websiteName,
-              description: String(form.description ?? "").trim(),
-              websiteName,
-              apiUrl,
-            },
+        data: {
+          kind: "cap.http.request",
+          name: websiteName,
+          description: String(form.description ?? "").trim(),
+          method,
+          websiteName,
+          apiUrl,
+          cacheEnabled: Boolean(form.cacheEnabled),
+          cacheMaxAgeMs: form.cacheEnabled ? Number(form.cacheMaxAgeMs ?? 60000) : undefined,
+        },
+      };
+      appendCapability(attach, capNode);
+      const webPos = { x: pos.x, y: pos.y + 150 };
+      setNodes((prev) => prev.map((n) => (n.id === webId ? { ...n, position: webPos } : n)));
+      setEdges((prev) => [...prev, makeRefEdge(capNode.id, webId)]);
+      tidyRefsUnderTail(capNode.id);
+      closeModal();
+      return;
+    }
+
+    if (modal.type === "cap.http.confidential") {
+      const attach = getAttachPoint();
+      if (!attach) return;
+      const websiteName = String(form.websiteName ?? "").trim();
+      const apiUrl = String(form.apiUrl ?? "").trim();
+      if (!websiteName || !apiUrl) return;
+      const method: HttpMethod = form.method === "POST" ? "POST" : "GET";
+      const secretKeys: string[] = Array.isArray(form.secretKeys) ? form.secretKeys : [];
+      const ownerAddress = form.ownerAddress ? String(form.ownerAddress).trim() : undefined;
+      const webId = ensureWebsite(websiteName, apiUrl);
+      const id = uid("cap");
+      const pos = placeRightOf(attach, 300, 0);
+      const capNode: Node<AnyNodeData> = {
+        id,
+        type: "appNode",
+        position: pos,
+        data: {
+          kind: "cap.http.confidential",
+          name: websiteName,
+          description: String(form.description ?? "").trim(),
+          method,
+          websiteName,
+          apiUrl,
+          secretKeys,
+          ownerAddress,
+          encryptOutput: Boolean(form.encryptOutput),
+        },
       };
       appendCapability(attach, capNode);
       const webPos = { x: pos.x, y: pos.y + 150 };
@@ -441,12 +473,6 @@ export default function App() {
           setIsOpen={setIsLeftOpen}
           openModal={openModal}
           selectedNode={selectedNode}
-          patchSelected={patchSelected}
-          canDelete={canDelete}
-          onDelete={() => selectedNode && deleteNode(selectedNode.id)}
-          nodes={nodes}
-          edges={edges}
-          onUnlinkEdge={(edgeId) => setEdges((prev) => prev.filter((e) => e.id !== edgeId))}
         />
 
         <main className={isLeftOpen ? "flow flow--withLeft" : "flow flow--full"}>
@@ -456,6 +482,7 @@ export default function App() {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            onNodeClick={(_, node) => { setSelectedId(node.id); setIsNodePopupOpen(true); }}
             nodeTypes={NODE_TYPES}
             fitView
           >
@@ -465,6 +492,20 @@ export default function App() {
           </ReactFlow>
         </main>
       </div>
+
+      {isNodePopupOpen && selectedNode && (
+        <NodeModal
+          selectedNode={selectedNode}
+          patchSelected={patchSelected}
+          canDelete={canDelete}
+          onDelete={() => { deleteNode(selectedNode.id); setIsNodePopupOpen(false); }}
+          nodes={nodes}
+          edges={edges}
+          onUnlinkEdge={(edgeId) => setEdges((prev) => prev.filter((e) => e.id !== edgeId))}
+          openModal={openModal}
+          onClose={() => setIsNodePopupOpen(false)}
+        />
+      )}
 
       <ModalsPanel
         modal={modal}

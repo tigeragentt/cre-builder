@@ -4,8 +4,8 @@ export type NodeKind =
   | "trigger.cron"
   | "trigger.evmLog"
   | "trigger.http"
-  | "cap.http.get"
-  | "cap.http.post"
+  | "cap.http.request"
+  | "cap.http.confidential"
   | "cap.evmRead"
   | "cap.evmWrite"
   | "cap.localExecution"
@@ -89,20 +89,35 @@ export type TriggerHttpData = BaseNodeData & {
   authorizedKeys: string[];
 };
 
-export type CapHttpGetData = BaseNodeData & {
-  kind: "cap.http.get";
-  websiteName: string;
-  apiUrl: string;
-};
+export type HttpMethod = "GET" | "POST";
 
-export type CapHttpPostData = BaseNodeData & {
-  kind: "cap.http.post";
+export type CapHttpRequestData = BaseNodeData & {
+  kind: "cap.http.request";
+  /** HTTP method for the request */
+  method: HttpMethod;
   websiteName: string;
   apiUrl: string;
-  /** Whether to use CacheSettings to prevent duplicate POST submissions across DON nodes */
+  /** Whether to use CacheSettings to prevent duplicate requests across DON nodes */
   cacheEnabled: boolean;
   /** Max age in milliseconds for cached responses (max 600000 = 10 min). Used when cacheEnabled is true. */
   cacheMaxAgeMs?: number;
+};
+
+export type CapHttpConfidentialData = BaseNodeData & {
+  kind: "cap.http.confidential";
+  /** HTTP method for the request */
+  method: HttpMethod;
+  websiteName: string;
+  apiUrl: string;
+  /**
+   * Vault DON secret keys injected into headers/body via `{{.KEY}}` templates.
+   * Resolved inside the enclave — never exposed to DON nodes.
+   */
+  secretKeys: string[];
+  /** Address that created the Vault DON secrets (secret owner). */
+  ownerAddress?: string;
+  /** Whether the enclave should encrypt the response (encryptOutput). */
+  encryptOutput: boolean;
 };
 
 export type EvmBlockSelection = "LatestFinalized" | "Latest" | "Custom";
@@ -151,8 +166,8 @@ export type AnyNodeData =
   | TriggerCronData
   | TriggerEvmLogData
   | TriggerHttpData
-  | CapHttpGetData
-  | CapHttpPostData
+  | CapHttpRequestData
+  | CapHttpConfidentialData
   | CapEvmReadData
   | CapEvmWriteData
   | CapLocalExecutionData
